@@ -1,5 +1,5 @@
 const { validationResult } = require('express-validator');
-const Application = require('../models/application');
+const Application = require('../models/Application');
 
 // GET /api/applications
 async function getAll(req, res) {

@@ -2,18 +2,30 @@ const { pool } = require('../config/db');
 
 /* ─── Auto-migrate: add new columns if they don't exist yet ─── */
 async function autoMigrate() {
-  const migrations = [
-    `ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL`,
-    `ALTER TABLE users ADD COLUMN is_email_verified TINYINT(1) DEFAULT 1`,
-    `ALTER TABLE users ADD COLUMN is_phone_verified TINYINT(1) DEFAULT 0`,
-    `ALTER TABLE users ADD COLUMN twofa_type ENUM('email', 'phone') DEFAULT 'email'`,
-    `ALTER TABLE users ADD COLUMN twofa_enabled TINYINT(1) NOT NULL DEFAULT 0`
-  ];
-  for (const sql of migrations) {
-    try { await pool.execute(sql); } catch (e) {
-      if (e.code !== 'ER_DUP_FIELDNAME') {
-        console.error('Migration error:', e.message);
+  try {
+    const [columns] = await pool.execute(`SHOW COLUMNS FROM users`);
+    const existingColumns = columns.map(c => c.Field);
+
+    const neededColumns = {
+      'phone': `ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL`,
+      'is_email_verified': `ALTER TABLE users ADD COLUMN is_email_verified TINYINT(1) DEFAULT 1`,
+      'is_phone_verified': `ALTER TABLE users ADD COLUMN is_phone_verified TINYINT(1) DEFAULT 0`,
+      'twofa_type': `ALTER TABLE users ADD COLUMN twofa_type ENUM('email', 'phone') DEFAULT 'email'`,
+      'twofa_enabled': `ALTER TABLE users ADD COLUMN twofa_enabled TINYINT(1) NOT NULL DEFAULT 0`
+    };
+
+    for (const [col, sql] of Object.entries(neededColumns)) {
+      if (!existingColumns.includes(col)) {
+        try {
+          await pool.execute(sql);
+        } catch (e) {
+          if (e.code !== 'ER_DUP_FIELDNAME') console.error(`Migration error on users.${col}:`, e.message);
+        }
       }
+    }
+  } catch (err) {
+    if (err.code !== 'ER_LOCK_DEADLOCK') {
+      console.error('User migration error:', err.message);
     }
   }
 }

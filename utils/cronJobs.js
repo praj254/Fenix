@@ -1,6 +1,8 @@
 const cron = require('node-cron');
 const AutomationService = require('../services/automationService');
 const EmailService = require('../services/emailService');
+const Application = require('../models/Application');
+const { pool } = require('../config/db');
 
 // Follow-Up Reminder — runs daily at 2:00 AM
 cron.schedule('0 2 * * *', async () => {
@@ -39,19 +41,29 @@ cron.schedule('0 2 * * *', async () => {
 });
 
 // Ghosted Detection — runs daily at 2:30 AM
+// Logic: If Applied/Under Review and no activity for 30 days -> mark as Ghosted
 cron.schedule('30 2 * * *', async () => {
   console.log('[CRON] Running ghosted detection job...');
   try {
-    const candidates = await AutomationService.getGhostedCandidates();
-    console.log(`   Found ${candidates.length} application(s) to mark as ghosted`);
+    const [candidates] = await pool.execute(
+      `SELECT a.id, a.user_id, a.company_name, a.job_title, u.email, u.name
+       FROM applications a
+       JOIN users u ON a.user_id = u.id
+       WHERE a.status IN ('Applied', 'Under Review')
+         AND DATEDIFF(NOW(), a.last_activity_date) >= 30`
+    );
 
     for (const app of candidates) {
-      await AutomationService.markAsGhosted(app.id);
+      await Application.update(app.id, app.user_id, {
+        status: 'Ghosted',
+        source: 'SYSTEM_CRON',
+        last_activity_date: new Date()
+      });
 
       await AutomationService.insertNotification(
         app.user_id,
         app.id,
-        `Your application to ${app.job_title} at ${app.company_name} has been marked as Ghosted after 30 days of no response.`,
+        `Your application to ${app.job_title} at ${app.company_name} has been marked as Ghosted after 30 days of no activity.`,
         'ghosted'
       );
 
@@ -62,15 +74,36 @@ cron.schedule('30 2 * * *', async () => {
           company: app.company_name,
           jobTitle: app.job_title
         });
-        console.log(`   Ghosted email sent to ${app.email}`);
-      } catch (e) {
-        console.error('   Email failed:', e.message);
-      }
-
-      console.log(`   Marked app #${app.id} (${app.company_name}) as Ghosted`);
+      } catch (e) { }
     }
+    console.log(`[CRON] Ghosted job finished. Processed ${candidates.length} apps.`);
   } catch (err) {
     console.error('[CRON] Ghosted detection job failed:', err.message);
+  }
+});
+
+// Under Review Detection — runs daily at 3:00 AM
+// Logic: If Applied and no activity for 7 days -> mark as Under Review
+cron.schedule('0 3 * * *', async () => {
+  console.log('[CRON] Running under-review detection job...');
+  try {
+    const [candidates] = await pool.execute(
+      `SELECT a.id, a.user_id, a.company_name, a.job_title
+       FROM applications a
+       WHERE a.status = 'Applied'
+         AND DATEDIFF(NOW(), a.last_activity_date) >= 7`
+    );
+
+    for (const app of candidates) {
+      await Application.update(app.id, app.user_id, {
+        status: 'Under Review',
+        source: 'SYSTEM_CRON',
+        last_activity_date: new Date()
+      });
+    }
+    console.log(`[CRON] Under-review job finished. Processed ${candidates.length} apps.`);
+  } catch (err) {
+    console.error('[CRON] Under-review job failed:', err.message);
   }
 });
 

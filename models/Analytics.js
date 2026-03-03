@@ -90,6 +90,34 @@ const Analytics = {
       [user_id]
     );
     return rows;
+  },
+
+  async getStatusAging(user_id) {
+    const [rows] = await pool.execute(
+      `SELECT id, company_name, job_title, status,
+      DATEDIFF(NOW(), last_activity_date) as days_stale
+       FROM applications
+       WHERE user_id = ?
+      AND status NOT IN('Offer', 'Rejected', 'Ghosted')
+       ORDER BY days_stale DESC`,
+      [user_id]
+    );
+    return rows;
+  },
+
+  async getPortalPerformance(user_id) {
+    const [rows] = await pool.execute(
+      `SELECT portal_type,
+      COUNT(*) as total_apps,
+      COUNT(CASE WHEN status IN('Interview', 'Offer') THEN 1 END) as positive_responses,
+      ROUND(COUNT(CASE WHEN status IN('Interview', 'Offer') THEN 1 END) / COUNT(*) * 100, 1) as success_rate
+       FROM applications
+       WHERE user_id = ? AND portal_type != 'UNKNOWN'
+       GROUP BY portal_type
+       ORDER BY success_rate DESC`,
+      [user_id]
+    );
+    return rows;
   }
 
 };
