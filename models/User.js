@@ -3,11 +3,18 @@ const { pool } = require('../config/db');
 /* ─── Auto-migrate: add new columns if they don't exist yet ─── */
 async function autoMigrate() {
   const migrations = [
-    `ALTER TABLE users ADD COLUMN IF NOT EXISTS phone       VARCHAR(20)  NULL`,
-    `ALTER TABLE users ADD COLUMN IF NOT EXISTS twofa_enabled TINYINT(1) NOT NULL DEFAULT 1`,
+    `ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL`,
+    `ALTER TABLE users ADD COLUMN is_email_verified TINYINT(1) DEFAULT 1`,
+    `ALTER TABLE users ADD COLUMN is_phone_verified TINYINT(1) DEFAULT 0`,
+    `ALTER TABLE users ADD COLUMN twofa_type ENUM('email', 'phone') DEFAULT 'email'`,
+    `ALTER TABLE users ADD COLUMN twofa_enabled TINYINT(1) NOT NULL DEFAULT 0`
   ];
   for (const sql of migrations) {
-    try { await pool.execute(sql); } catch (e) { /* already exists or unsupported – ignore */ }
+    try { await pool.execute(sql); } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') {
+        console.error('Migration error:', e.message);
+      }
+    }
   }
 }
 autoMigrate().catch(() => { });
@@ -35,7 +42,7 @@ const User = {
       const [rows] = await pool.execute(
         `SELECT id, name, email, role, created_at,
                 bio, skills, experience, projects,
-                phone, twofa_enabled
+                phone, twofa_enabled, is_email_verified, is_phone_verified, twofa_type
          FROM users WHERE id = ? LIMIT 1`,
         [id]
       );
@@ -68,10 +75,10 @@ const User = {
     }
   },
 
-  async updateSecurity(id, { phone = null, twofa_enabled = 1 }) {
+  async updateSecurity(id, { phone = null, twofa_enabled = 0, twofa_type = 'email' }) {
     await pool.execute(
-      `UPDATE users SET phone = ?, twofa_enabled = ? WHERE id = ?`,
-      [phone || null, twofa_enabled ? 1 : 0, id]
+      `UPDATE users SET phone = ?, twofa_enabled = ?, twofa_type = ? WHERE id = ?`,
+      [phone || null, twofa_enabled ? 1 : 0, twofa_type, id]
     );
   },
 
@@ -104,8 +111,14 @@ const User = {
       `UPDATE users SET twofa_code = NULL, twofa_expires = NULL WHERE id = ?`,
       [userId]
     );
-  }
+  },
 
+  async markPhoneVerified(userId) {
+    await pool.execute(
+      `UPDATE users SET is_phone_verified = 1 WHERE id = ?`,
+      [userId]
+    );
+  }
 };
 
 module.exports = User;

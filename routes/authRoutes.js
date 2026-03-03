@@ -4,7 +4,9 @@ const { body } = require('express-validator');
 const {
   register, login, verify2FA,
   getMe, updateMe,
-  changePw, updateSecurity
+  changePw, updateSecurity,
+  sendPhoneVerification, verifyPhone,
+  forgotPasswordOtp, forgotPasswordVerify, forgotPasswordReset
 } = require('../controllers/authController');
 const authMiddleware = require('../middleware/auth');
 
@@ -30,5 +32,11 @@ router.get('/me', authMiddleware, getMe);
 router.put('/me', authMiddleware, profileRules, updateMe);
 router.post('/change-password', authMiddleware, changePw);
 router.put('/security', authMiddleware, updateSecurity);
+
+router.post('/send-phone-verification', authMiddleware, sendPhoneVerification);
+router.post('/verify-phone', authMiddleware, verifyPhone);
+router.post('/forgot-password-otp', forgotPasswordOtp);
+router.post('/forgot-password-verify', forgotPasswordVerify);
+router.post('/forgot-password-reset', forgotPasswordReset);
 
 module.exports = router;

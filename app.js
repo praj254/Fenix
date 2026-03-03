@@ -3,13 +3,14 @@ const helmet = require("helmet");
 const path = require("path");
 require("dotenv").config();
 require("./utils/cronJobs");
+const cookieParser = require("cookie-parser");
 
 const { testConnection } = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-const emailTestRoutes    = require("./routes/emailTestRoutes");
+const emailTestRoutes = require("./routes/emailTestRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
 
@@ -40,6 +41,7 @@ app.use(
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Static files
 app.use(express.static(path.join(__dirname, "public")));
@@ -62,6 +64,7 @@ app.use("/api/resumes", resumeRoutes);
 // ─── View Routes (Frontend Pages) ───────────────────────
 app.get("/login", (req, res) => res.render("auth/login"));
 app.get("/register", (req, res) => res.render("auth/register"));
+app.get("/forgot-password", (req, res) => res.render("auth/forgot-password"));
 app.get("/dashboard", (req, res) => res.render("dashboard"));
 app.get("/applications", (req, res) => res.render("applications"));
 app.get("/profile", (req, res) => res.render("profile"));

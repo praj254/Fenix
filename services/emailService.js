@@ -376,7 +376,7 @@ const EmailService = {
     });
   },
 
-  /* ─── 3. Welcome Email ───────────────────────────────────── */
+  /* 3. Welcome Email */
   async sendWelcome({ to, name }) {
     const appUrl = process.env.APP_URL || 'http://localhost:3000';
     const transporter = getTransporter();
@@ -467,6 +467,58 @@ const EmailService = {
       }),
     });
   },
+
+  /* 4. Login Alert */
+  async sendLoginAlert({ to, name, device, ip, time }) {
+    const transporter = getTransporter();
+    const body = `
+      <div style="margin-bottom:20px;">${pill('Security Alert', '#ef4444')}</div>
+      <h1 style="color:#f1f5f9;font-size:1.6rem;font-weight:800;line-height:1.25;margin:0 0 10px;">
+        New Login Detected
+      </h1>
+      <p style="color:#64748b;font-size:0.95rem;line-height:1.6;margin:0 0 20px;">
+        Hi ${name}, we noticed a login to your account from an unrecognized device.
+      </p>
+      ${infoCard('💻', 'Device', device || 'Unknown', '#ef4444')}
+      ${infoCard('🌐', 'IP Address', ip || 'Unknown', '#ef4444')}
+      ${infoCard('🕒', 'Time', time, '#ef4444')}
+      <p style="color:#64748b;font-size:0.85rem;line-height:1.5;margin-top:20px;">
+        If this was you, you can safely ignore this email. If not, please change your password immediately.
+      </p>
+    `;
+    await transporter.sendMail({
+      from: `"Fenix Security" <${process.env.SMTP_USER}>`,
+      to,
+      subject: 'Security Alert: New Login Detected',
+      html: emailShell({ preheader: 'We detected a login from a new device.', body, accentColor: '#ef4444', accentColorEnd: '#dc2626' })
+    });
+  },
+
+  /* 5. 2FA Code  */
+  async send2FAEmail({ to, name, code }) {
+    const transporter = getTransporter();
+    const body = `
+      <div style="margin-bottom:20px;">${pill('Your Verification Code', '#6366f1')}</div>
+      <h1 style="color:#f1f5f9;font-size:1.6rem;font-weight:800;line-height:1.25;margin:0 0 20px;">
+        Login Verification
+      </h1>
+      <p style="color:#64748b;font-size:0.95rem;line-height:1.6;margin:0 0 20px;">
+        Hi ${name}, enter the following 6-digit code to complete your login. It expires in 10 minutes.
+      </p>
+      <div style="background:#6366f1;padding:20px;text-align:center;border-radius:12px;margin-bottom:20px;">
+        <span style="font-size:2rem;font-weight:800;letter-spacing:0.2em;color:#ffffff;">${code}</span>
+      </div>
+      <p style="color:#64748b;font-size:0.85rem;line-height:1.5;">
+        If you didn't request this, please change your password immediately.
+      </p>
+    `;
+    await transporter.sendMail({
+      from: `"Fenix Security" <${process.env.SMTP_USER}>`,
+      to,
+      subject: `${code} is your Fenix login code`,
+      html: emailShell({ preheader: `Your login verification code is ${code}`, body, accentColor: '#6366f1', accentColorEnd: '#8b5cf6' })
+    });
+  }
 
 };
 

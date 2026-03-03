@@ -217,8 +217,51 @@
 
               <div class="form-group">
                 <label class="form-label">Phone Number</label>
-                <input type="tel" id="sec-phone" class="form-control" placeholder="+1 234 567 8900">
+                <div style="display:flex;gap:10px;">
+                  <input type="tel" id="sec-phone" class="form-control" placeholder="+1 234 567 8900" style="flex:1;">
+                  <button type="button" id="btn-verify-phone" class="btn btn-secondary btn-sm"
+                    onclick="startPhoneVerification()" style="display:none;white-space:nowrap;">
+                    Verify Phone
+                  </button>
+                  <span id="label-phone-verified" class="badge badge-soft"
+                    style="display:none;background:rgba(16,185,129,0.1);color:#10b981;border-color:rgba(16,185,129,0.25);align-items:center;padding:0 12px;white-space:nowrap;">
+                    ✓ Verified
+                  </span>
+                </div>
                 <small style="color:var(--text-muted);font-size:0.75rem;">Kept on file · used for future SMS 2FA</small>
+              </div>
+
+              <!-- OTP Form (hidden by default) -->
+              <div id="phone-otp-box"
+                style="display:none;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.05);padding:16px;border-radius:var(--radius-md);margin-bottom:16px;">
+                <div style="font-size:0.85rem;font-weight:600;margin-bottom:8px;color:var(--accent-primary);">Enter
+                  Verification Code</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input type="text" id="phone-otp-input" class="form-control" placeholder="123456" maxlength="6"
+                    style="width:120px;letter-spacing:2px;text-align:center;">
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-submit-otp"
+                    onclick="submitPhoneOtp()">Verify</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="cancelPhoneOtp()">Cancel</button>
+                </div>
+              </div>
+
+              <!-- 2FA Type -->
+              <div class="form-group" style="margin-top: 15px;">
+                <label class="form-label" style="display:block;margin-bottom:8px;">2FA Delivery Method</label>
+                <div style="position:relative;">
+                  <select id="sec-twofa-type" class="form-control" onchange="check2FAEligibility()"
+                    style="appearance:none;padding-right:36px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);cursor:pointer;font-weight:500;">
+                    <option value="email">Email ✉️ (Recommended)</option>
+                    <option value="phone">SMS / Phone 📱</option>
+                  </select>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                <small id="twofa-eligibility-msg"
+                  style="color:var(--text-muted);font-size:0.75rem;margin-top:6px;display:block;">Loading...</small>
               </div>
 
               <!-- Toggle row -->
@@ -301,8 +344,8 @@
 
         const phoneInput = document.getElementById('profile-phone');
 
-        if (heroAvatar) heroAvatar.textContent = initials;
-        if (navAvatar) navAvatar.textContent = initials;
+        if (heroAvatar) heroAvatar.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${u.name}&background=random&color=fff&size=128')`;
+        if (navAvatar) navAvatar.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${u.name}&background=random&color=fff&size=128')`;
         if (heroName) heroName.textContent = u.name;
         if (heroEmail) heroEmail.textContent = u.email;
         if (heroJoined) heroJoined.textContent = `Member since ${new Date(u.created_at || Date.now()).getFullYear()}`;
@@ -318,9 +361,16 @@
         // Security section
         const secPhone = document.getElementById('sec-phone');
         const twofaToggle = document.getElementById('twofa-toggle');
+        const twofaType = document.getElementById('sec-twofa-type');
+
         if (secPhone) secPhone.value = u.phone || '';
+        if (twofaType) twofaType.value = u.twofa_type || 'email';
+
+        syncPhoneVerificationUI();
+
         if (twofaToggle) {
           twofaToggle.checked = u.twofa_enabled !== 0;
+          check2FAEligibility();
           syncTwofaBadge();
         }
 
@@ -588,10 +638,45 @@
       loadResumes();
 
       // ─── Security helpers ──────────────────────────────────────
+      function check2FAEligibility() {
+        if (!user) return;
+        const type = document.getElementById('sec-twofa-type').value;
+        const toggle = document.getElementById('twofa-toggle');
+        const msg = document.getElementById('twofa-eligibility-msg');
+
+        let eligible = false;
+        let warningText = '';
+
+        if (type === 'email') {
+          eligible = user.is_email_verified;
+          if (!eligible) warningText = 'Your email is not verified.';
+        } else if (type === 'phone') {
+          eligible = user.is_phone_verified;
+          if (!eligible) {
+            warningText = 'Please enter and verify a phone number first.';
+          }
+        }
+
+        if (!eligible) {
+          toggle.disabled = true;
+          toggle.checked = false;
+          msg.textContent = warningText;
+          msg.style.color = '#ef4444'; // Red warning
+        } else {
+          toggle.disabled = false;
+          msg.textContent = 'Method verified and ready.';
+          msg.style.color = 'var(--text-muted)';
+        }
+        syncTwofaBadge();
+      }
+
       function syncTwofaBadge() {
-        const on = document.getElementById('twofa-toggle')?.checked;
+        const toggle = document.getElementById('twofa-toggle');
+        const on = toggle?.checked;
         const badge = document.getElementById('twofa-badge');
         const thumb = document.getElementById('twofa-thumb');
+        const track = document.getElementById('twofa-track');
+
         if (badge) {
           badge.textContent = on ? 'Enabled' : 'Disabled';
           badge.style.background = on ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.1)';
@@ -599,6 +684,9 @@
           badge.style.borderColor = on ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)';
         }
         if (thumb) thumb.style.transform = on ? 'translateX(20px)' : 'translateX(0)';
+        if (track && toggle) {
+          track.style.opacity = toggle.disabled ? '0.4' : '1';
+        }
       }
 
       async function changePassword() {
@@ -622,20 +710,112 @@
 
       async function saveSecurity() {
         const phone = document.getElementById('sec-phone')?.value.trim() || null;
+        const twofaType = document.getElementById('sec-twofa-type')?.value;
         const enabled = document.getElementById('twofa-toggle')?.checked ? 1 : 0;
         try {
-          const res = await API.put('/auth/security', { phone, twofa_enabled: enabled });
+          const res = await API.put('/auth/security', { phone, twofa_enabled: enabled, twofa_type: twofaType });
           if (res.error) return Toast.error(res.error);
           const pPhone = document.getElementById('profile-phone');
           if (pPhone) pPhone.value = phone || '';
-          const stored = API.user();
-          if (stored) {
-            stored.phone = phone;
-            stored.twofa_enabled = enabled;
-            localStorage.setItem('cp_user', JSON.stringify(stored));
+
+          if (res.user) {
+            user = res.user; // Update current user with latest details
+            localStorage.setItem('cp_user', JSON.stringify(user));
+            check2FAEligibility();
           }
+
           Toast.success('Security settings saved! 🛡️');
+          syncPhoneVerificationUI();
         } catch (e) { Toast.error('Failed to save security settings.'); }
+      }
+
+      // ─── Phone Verification Logic ─────────────────────────────────
+      function syncPhoneVerificationUI() {
+        if (!user) return;
+        const btn = document.getElementById('btn-verify-phone');
+        const badge = document.getElementById('label-phone-verified');
+        const input = document.getElementById('sec-phone');
+
+        if (!input?.value) {
+          if (btn) btn.style.display = 'none';
+          if (badge) badge.style.display = 'none';
+          return;
+        }
+
+        // If input differs from saved user.phone, it needs saving first or is unverified
+        if (input.value !== user.phone) {
+          if (btn) btn.style.display = 'none';
+          if (badge) badge.style.display = 'none';
+          return;
+        }
+
+        if (user.is_phone_verified) {
+          if (btn) btn.style.display = 'none';
+          if (badge) badge.style.display = 'inline-flex';
+        } else {
+          if (btn) btn.style.display = 'inline-flex';
+          if (badge) badge.style.display = 'none';
+        }
+      }
+
+      // Hook up input change to re-evaluate UI
+      document.getElementById('sec-phone')?.addEventListener('input', syncPhoneVerificationUI);
+
+      async function startPhoneVerification() {
+        const inputBox = document.getElementById('sec-phone').value.trim();
+        if (!inputBox) {
+          Toast.error('Please enter a phone number first');
+          return;
+        }
+
+        const btn = document.getElementById('btn-verify-phone');
+        btn.innerHTML = '<div class="spinner"></div>';
+        btn.disabled = true;
+
+        try {
+          const res = await API.post('/auth/send-phone-verification', { phone: inputBox });
+          if (res.error) {
+            Toast.error(res.error);
+          } else {
+            document.getElementById('phone-otp-box').style.display = 'block';
+            document.getElementById('phone-otp-input').focus();
+            Toast.success(`Verification code sent!`);
+          }
+        } catch (e) { Toast.error('Failed to send OTP') }
+
+        btn.innerHTML = 'Verify Phone';
+        btn.disabled = false;
+      }
+
+      function cancelPhoneOtp() {
+        document.getElementById('phone-otp-box').style.display = 'none';
+        document.getElementById('phone-otp-input').value = '';
+      }
+
+      async function submitPhoneOtp() {
+        const code = document.getElementById('phone-otp-input').value.trim();
+        if (code.length !== 6) return Toast.error('Enter 6 digit code');
+
+        const btn = document.getElementById('btn-submit-otp');
+        btn.innerHTML = '<div class="spinner"></div>';
+        btn.disabled = true;
+
+        try {
+          const res = await API.post('/auth/verify-phone', { code });
+          if (res.error) {
+            Toast.error(res.error);
+          } else {
+            Toast.success('Phone verified successfully! 📱');
+            user = res.user;
+            localStorage.setItem('cp_user', JSON.stringify(user));
+            cancelPhoneOtp();
+            syncPhoneVerificationUI();
+            check2FAEligibility();
+          }
+        } catch (e) { Toast.error('Error verifying code'); }
+
+        btn.innerHTML = 'Verify';
+        btn.disabled = false;
       }
     </script>
 </body>
