@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><%- include('../partials/head', { title: 'Login' }) %></head>
+<body>
+<div class="bg-animated">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+</div>
+
+<div class="auth-page">
+  <div class="auth-card" id="auth-card">
+
+    <!-- Login Form -->
+    <div id="login-form">
+      <div class="auth-logo">
+        <div class="fenix-auth-logo">
+          <svg width="36" height="36" viewBox="0 0 28 28" fill="none">
+            <rect width="28" height="28" rx="8" fill="url(#gl)"/>
+            <line x1="8" y1="20" x2="20" y2="8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="gl" x1="0" y1="0" x2="28" y2="28">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h2 style="margin-top:16px">Welcome to Fenix</h2>
+        <p>Sign in to your account</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="email" class="form-control" placeholder="you@example.com" autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="password" class="form-control" placeholder="••••••••">
+      </div>
+
+      <button class="btn btn-primary btn-lg" style="width:100%" id="login-btn">
+        Sign In
+      </button>
+
+      <p style="text-align:center;margin-top:20px;font-size:0.875rem">
+        Don't have an account?
+        <a href="/register" style="color:var(--accent-primary);font-weight:600">Sign up</a>
+      </p>
+    </div>
+
+    <!-- 2FA Form (hidden initially) -->
+    <div id="twofa-form" style="display:none">
+      <div class="auth-logo">
+        <div style="font-size:2.5rem;margin-bottom:12px">🔐</div>
+        <h2>Two-Factor Auth</h2>
+        <p id="twofa-hint">Enter the 6-digit code</p>
+      </div>
+
+      <div class="otp-inputs">
+        <input type="text" maxlength="1" class="otp-input" data-index="0">
+        <input type="text" maxlength="1" class="otp-input" data-index="1">
+        <input type="text" maxlength="1" class="otp-input" data-index="2">
+        <input type="text" maxlength="1" class="otp-input" data-index="3">
+        <input type="text" maxlength="1" class="otp-input" data-index="4">
+        <input type="text" maxlength="1" class="otp-input" data-index="5">
+      </div>
+
+      <button class="btn btn-primary btn-lg" style="width:100%" id="verify-btn">
+        Verify Code
+      </button>
+
+      <p style="text-align:center;margin-top:16px;font-size:0.875rem">
+        <a href="#" onclick="backToLogin()" style="color:var(--accent-primary);font-weight:600">← Back to login</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="error-modal-overlay" id="error-modal-overlay">
+  <div class="error-modal">
+    <div class="error-modal-icon">❌</div>
+    <h3 id="error-modal-title">Invalid Credentials</h3>
+    <p id="error-modal-msg">The email or password you entered is incorrect. Please try again.</p>
+    <button class="btn btn-primary error-modal-close" onclick="closeErrorModal()">Try Again</button>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  window.addEventListener('load', () => { Theme.init(); Toast.init(); });
+
+  let storedUserId = null;
+
+  async function handleLogin() {
+    const btn   = document.getElementById('login-btn');
+    const email = document.getElementById('email').value.trim();
+    const pass  = document.getElementById('password').value;
+
+    if (!email || !pass) {
+      showErrorModal('Missing Fields', 'Please fill in both email and password.');
+      return;
+    }
+
+    btn.innerHTML = '<div class="spinner"></div> Signing in...';
+    btn.disabled  = true;
+
+    const data = await API.post('/auth/login', { email, password: pass });
+
+    btn.innerHTML = 'Sign In';
+    btn.disabled  = false;
+
+    if (data.twofa_required) {
+      storedUserId = data.user_id;
+      // Show dev code in hint
+      document.getElementById('twofa-hint').innerHTML =
+        `Dev mode — your code: <strong style="color:var(--accent-primary);font-size:1.1rem;letter-spacing:0.1em">${data.dev_code}</strong>`;
+      document.getElementById('login-form').style.display  = 'none';
+      document.getElementById('twofa-form').style.display  = 'block';
+      document.querySelector('.otp-input').focus();
+    } else {
+      showErrorModal('Sign In Failed', data.error || 'Something went wrong. Please try again.');
+    }
+  }
+
+  async function handleVerify() {
+    const inputs = document.querySelectorAll('.otp-input');
+    const code   = Array.from(inputs).map(i => i.value).join('');
+    if (code.length !== 6) {
+      showErrorModal('Incomplete Code', 'Please enter all 6 digits.');
+      return;
+    }
+
+    const btn = document.getElementById('verify-btn');
+    btn.innerHTML = '<div class="spinner"></div> Verifying...';
+    btn.disabled  = true;
+
+    const data = await API.post('/auth/verify-2fa', { user_id: storedUserId, code });
+
+    btn.innerHTML = 'Verify Code';
+    btn.disabled  = false;
+
+    if (data.token) {
+      API.setSession(data.token, data.user);
+      Toast.success('Welcome back! 👋');
+      setTimeout(() => window.location.href = '/dashboard', 600);
+    } else {
+      showErrorModal('Wrong Code', data.error || 'Invalid or expired code. Please try again.');
+      inputs.forEach(i => { i.value = ''; i.classList.remove('filled'); });
+      inputs[0].focus();
+    }
+  }
+
+  function backToLogin() {
+    document.getElementById('twofa-form').style.display  = 'none';
+    document.getElementById('login-form').style.display  = 'block';
+    storedUserId = null;
+  }
+
+  function showErrorModal(title, msg) {
+    document.getElementById('error-modal-title').textContent = title;
+    document.getElementById('error-modal-msg').textContent   = msg;
+    document.getElementById('error-modal-overlay').classList.add('open');
+  }
+
+  function closeErrorModal() {
+    document.getElementById('error-modal-overlay').classList.remove('open');
+  }
+
+  // OTP input auto-advance
+  document.querySelectorAll('.otp-input').forEach((input, idx, all) => {
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/\D/g, '');
+      if (input.value) {
+        input.classList.add('filled');
+        if (idx < all.length - 1) all[idx + 1].focus();
+        else document.getElementById('verify-btn').focus();
+      } else {
+        input.classList.remove('filled');
+      }
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !input.value && idx > 0) {
+        all[idx - 1].focus();
+        all[idx - 1].classList.remove('filled');
+      }
+    });
+  });
+
+  document.getElementById('login-btn').addEventListener('click', handleLogin);
+  document.getElementById('verify-btn').addEventListener('click', handleVerify);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      if (document.getElementById('login-form').style.display !== 'none') handleLogin();
+      else handleVerify();
+    }
+  });
+</script>
+</body>
+</html>

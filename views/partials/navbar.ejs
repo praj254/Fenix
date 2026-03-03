@@ -1,0 +1,78 @@
+<nav class="navbar">
+  <button class="mobile-menu-btn" id="mobile-menu-btn">
+    <span></span><span></span><span></span>
+  </button>
+
+  <a class="navbar-brand" href="/dashboard">
+    <div class="fenix-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="8" fill="url(#nav_grad)"/>
+        <line x1="8" y1="20" x2="20" y2="8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <defs>
+          <linearGradient id="nav_grad" x1="0" y1="0" x2="28" y2="28">
+            <stop offset="0%" stop-color="#6366f1"/>
+            <stop offset="100%" stop-color="#8b5cf6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <span class="brand-text">Fenix</span>
+  </a>
+
+  <div class="navbar-center">
+    <a href="/dashboard"    class="nav-link <%= page === 'dashboard'    ? 'active' : '' %>">Dashboard</a>
+    <a href="/applications" class="nav-link <%= page === 'applications' ? 'active' : '' %>">Applications</a>
+    <a href="/ai"           class="nav-link <%= page === 'ai'           ? 'active' : '' %>">AI Tools</a>
+  </div>
+
+  <div class="navbar-right">
+    <!-- Sun/Moon toggle -->
+    <button class="theme-btn" id="theme-toggle" title="Toggle theme">
+      <span class="moon">🌙</span>
+      <span class="sun">☀️</span>
+    </button>
+
+    <!-- Notifications -->
+    <div class="notif-wrapper" id="notif-wrapper">
+      <button class="icon-btn" id="notif-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+      </button>
+      <div class="notif-dropdown" id="notif-dropdown">
+        <div class="notif-header">
+          <span>Notifications</span>
+          <button class="btn btn-secondary btn-sm" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notif-list">
+          <div class="notif-empty">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile -->
+    <div class="profile-wrapper" id="profile-wrapper">
+      <button class="profile-btn" id="profile-btn">
+        <div class="avatar" id="nav-avatar">?</div>
+      </button>
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="profile-info">
+          <div class="avatar avatar-lg" id="dropdown-avatar">?</div>
+          <div>
+            <div class="profile-name"  id="dropdown-name">Loading...</div>
+            <div class="profile-email" id="dropdown-email"></div>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <a href="/profile"      class="profile-menu-item">👤 Profile & Settings</a>
+          <a href="/applications" class="profile-menu-item">💼 My Applications</a>
+          <a href="/ai"           class="profile-menu-item">🤖 AI Tools</a>
+          <div class="profile-divider"></div>
+          <button class="profile-menu-item danger" id="logout-btn">🚪 Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

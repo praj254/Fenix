@@ -1,0 +1,39 @@
+<aside class="sidebar" id="sidebar">
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Main</div>
+    <a href="/dashboard"    class="sidebar-link <%= page === 'dashboard'    ? 'active' : '' %>">
+      <span class="icon">📊</span> Dashboard
+    </a>
+    <a href="/applications" class="sidebar-link <%= page === 'applications' ? 'active' : '' %>">
+      <span class="icon">💼</span> Applications
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">AI Tools</div>
+    <a href="/ai" class="sidebar-link <%= page === 'ai' ? 'active' : '' %>">
+      <span class="icon">🤖</span> Resume Match
+    </a>
+    <a href="/ai" class="sidebar-link">
+      <span class="icon">🎯</span> ATS Checker
+    </a>
+    <a href="/ai" class="sidebar-link">
+      <span class="icon">📧</span> Rejection Analyzer
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Account</div>
+    <a href="/profile" class="sidebar-link <%= page === 'profile' ? 'active' : '' %>">
+      <span class="icon">👤</span> Profile
+    </a>
+    <button class="sidebar-link" id="logout-btn"
+      style="width:100%;background:none;border:none;cursor:pointer;text-align:left;font-family:inherit;font-size:inherit">
+      <span class="icon">🚪</span> Logout
+    </button>
+  </div>
+
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>

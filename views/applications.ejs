@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Applications' }) %></head>
+<body>
+
+<div class="bg-animated">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+</div>
+
+<%- include('partials/navbar', { page: 'applications' }) %>
+
+<div class="app-layout">
+  <%- include('partials/sidebar', { page: 'applications' }) %>
+
+  <main class="main-content">
+
+    <!-- Header -->
+    <div class="page-header fade-in">
+      <div>
+        <div class="page-title">Applications</div>
+        <div class="page-subtitle" id="app-count">Loading...</div>
+      </div>
+      <button class="btn btn-primary" onclick="Modal.open('add-modal')">
+        + Add Application
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card fade-in stagger-1" style="margin-bottom:20px; padding:16px">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center">
+        <select class="form-control" id="filter-status" style="width:auto; min-width:140px">
+          <option value="">All Statuses</option>
+          <option>Applied</option>
+          <option>Interview</option>
+          <option>Offer</option>
+          <option>Rejected</option>
+          <option>Ghosted</option>
+        </select>
+        <input type="text" class="form-control" id="filter-company" placeholder="Search company..." style="width:auto; min-width:180px">
+        <input type="date" class="form-control" id="filter-start" style="width:auto">
+        <input type="date" class="form-control" id="filter-end"   style="width:auto">
+        <button class="btn btn-primary btn-sm" onclick="loadApplications()">Search</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card fade-in stagger-2" style="padding:0">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Applied</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="apps-table">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-top:1px solid var(--border)">
+        <span id="pagination-info" style="font-size:0.8rem; color:var(--text-muted)"></span>
+        <div style="display:flex; gap:8px">
+          <button class="btn btn-secondary btn-sm" id="prev-btn" onclick="changePage(-1)">← Prev</button>
+          <button class="btn btn-secondary btn-sm" id="next-btn" onclick="changePage(1)">Next →</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ─── Add Application Modal ──────────────────────────────── -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>New Application</h3>
+      <button class="modal-close" onclick="Modal.close('add-modal')">✕</button>
+    </div>
+
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Company *</label>
+        <input type="text" id="add-company" class="form-control" placeholder="Google">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Job Title *</label>
+        <input type="text" id="add-title" class="form-control" placeholder="Backend Engineer">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Location</label>
+        <input type="text" id="add-location" class="form-control" placeholder="Remote / City">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Salary Range</label>
+        <input type="text" id="add-salary" class="form-control" placeholder="$80k - $120k">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select id="add-status" class="form-control">
+          <option>Applied</option>
+          <option>Interview</option>
+          <option>Offer</option>
+          <option>Rejected</option>
+          <option>Ghosted</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Applied Date</label>
+        <input type="date" id="add-date" class="form-control">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Job Link</label>
+      <input type="url" id="add-link" class="form-control" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea id="add-notes" class="form-control" rows="3" placeholder="Any notes..."></textarea>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px">
+      <button class="btn btn-secondary" onclick="Modal.close('add-modal')">Cancel</button>
+      <button class="btn btn-primary" id="add-submit-btn" onclick="submitAdd()">Add Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Edit Application Modal ─────────────────────────────── -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit Application</h3>
+      <button class="modal-close" onclick="Modal.close('edit-modal')">✕</button>
+    </div>
+
+    <input type="hidden" id="edit-id">
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Company *</label>
+        <input type="text" id="edit-company" class="form-control">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Job Title *</label>
+        <input type="text" id="edit-title" class="form-control">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Location</label>
+        <input type="text" id="edit-location" class="form-control">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Salary Range</label>
+        <input type="text" id="edit-salary" class="form-control">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select id="edit-status" class="form-control">
+          <option>Applied</option>
+          <option>Interview</option>
+          <option>Offer</option>
+          <option>Rejected</option>
+          <option>Ghosted</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Applied Date</label>
+        <input type="date" id="edit-date" class="form-control">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Job Link</label>
+      <input type="url" id="edit-link" class="form-control">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea id="edit-notes" class="form-control" rows="3"></textarea>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px">
+      <button class="btn btn-secondary" onclick="Modal.close('edit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  Auth.guard();
+
+  let currentPage = 0;
+  const LIMIT = 10;
+
+  function getFilters() {
+    return {
+      status:    document.getElementById('filter-status').value,
+      company:   document.getElementById('filter-company').value,
+      startDate: document.getElementById('filter-start').value,
+      endDate:   document.getElementById('filter-end').value,
+      limit:     LIMIT,
+      offset:    currentPage * LIMIT
+    };
+  }
+
+  function clearFilters() {
+    document.getElementById('filter-status').value  = '';
+    document.getElementById('filter-company').value = '';
+    document.getElementById('filter-start').value   = '';
+    document.getElementById('filter-end').value     = '';
+    currentPage = 0;
+    loadApplications();
+  }
+
+  function changePage(dir) {
+    currentPage = Math.max(0, currentPage + dir);
+    loadApplications();
+  }
+
+  async function loadApplications() {
+    const filters = getFilters();
+    // Remove empty filters
+    Object.keys(filters).forEach(k => { if (!filters[k] && filters[k] !== 0) delete filters[k]; });
+    filters.limit  = LIMIT;
+    filters.offset = currentPage * LIMIT;
+
+    const data = await Applications.getAll(filters);
+    const apps = data.applications || [];
+
+    // Update count
+    document.getElementById('app-count').textContent =
+      `${apps.length} application${apps.length !== 1 ? 's' : ''} found`;
+
+    // Pagination buttons
+    document.getElementById('prev-btn').disabled = currentPage === 0;
+    document.getElementById('next-btn').disabled = apps.length < LIMIT;
+    document.getElementById('pagination-info').textContent =
+      `Page ${currentPage + 1}`;
+
+    const tbody = document.getElementById('apps-table');
+
+    if (!apps.length) {
+      tbody.innerHTML = `<tr><td colspan="6">
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <h3>No applications found</h3>
+          <p>Try adjusting your filters or add a new application</p>
+        </div>
+      </td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = apps.map(app => `
+      <tr class="fade-in">
+        <td>
+          <strong>${app.company_name}</strong>
+          ${app.job_link ? `<a href="${app.job_link}" target="_blank" style="color:var(--accent-primary);margin-left:6px;font-size:0.75rem">↗</a>` : ''}
+        </td>
+        <td style="color:var(--text-secondary)">${app.job_title}</td>
+        <td style="color:var(--text-muted)">${app.location || '—'}</td>
+        <td>${statusBadge(app.status)}</td>
+        <td style="color:var(--text-muted)">${formatDate(app.applied_date)}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="openEdit(${JSON.stringify(app).replace(/"/g, '&quot;')})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteApp(${app.id})">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ─── Add Application ──────────────────────────────────────
+  async function submitAdd() {
+    const btn = document.getElementById('add-submit-btn');
+    const company = document.getElementById('add-company').value.trim();
+    const title   = document.getElementById('add-title').value.trim();
+    if (!company || !title) return Toast.error('Company and job title are required');
+
+    btn.innerHTML = '<div class="spinner"></div>';
+    btn.disabled = true;
+
+    const data = await Applications.create({
+      company_name: company,
+      job_title:    title,
+      location:     document.getElementById('add-location').value,
+      salary_range: document.getElementById('add-salary').value,
+      status:       document.getElementById('add-status').value,
+      applied_date: document.getElementById('add-date').value,
+      job_link:     document.getElementById('add-link').value,
+      notes:        document.getElementById('add-notes').value
+    });
+
+    btn.innerHTML = 'Add Application';
+    btn.disabled = false;
+
+    if (data.id) {
+      Toast.success('Application added! 🎉');
+      Modal.close('add-modal');
+      loadApplications();
+      // Clear form
+      ['add-company','add-title','add-location','add-salary','add-link','add-notes','add-date']
+        .forEach(id => document.getElementById(id).value = '');
+    } else {
+      Toast.error(data.error || 'Failed to add application');
+    }
+  }
+
+  // ─── Edit Application ─────────────────────────────────────
+  function openEdit(app) {
+    document.getElementById('edit-id').value      = app.id;
+    document.getElementById('edit-company').value = app.company_name;
+    document.getElementById('edit-title').value   = app.job_title;
+    document.getElementById('edit-location').value= app.location || '';
+    document.getElementById('edit-salary').value  = app.salary_range || '';
+    document.getElementById('edit-status').value  = app.status;
+    document.getElementById('edit-link').value    = app.job_link || '';
+    document.getElementById('edit-notes').value   = app.notes || '';
+    if (app.applied_date) {
+      document.getElementById('edit-date').value = app.applied_date.split('T')[0];
+    }
+    Modal.open('edit-modal');
+  }
+
+  async function submitEdit() {
+    const id = document.getElementById('edit-id').value;
+    const data = await Applications.update(id, {
+      company_name: document.getElementById('edit-company').value,
+      job_title:    document.getElementById('edit-title').value,
+      location:     document.getElementById('edit-location').value,
+      salary_range: document.getElementById('edit-salary').value,
+      status:       document.getElementById('edit-status').value,
+      applied_date: document.getElementById('edit-date').value,
+      job_link:     document.getElementById('edit-link').value,
+      notes:        document.getElementById('edit-notes').value
+    });
+
+    if (data.message) {
+      Toast.success('Application updated!');
+      Modal.close('edit-modal');
+      loadApplications();
+    } else {
+      Toast.error(data.error || 'Failed to update');
+    }
+  }
+
+  // ─── Delete Application ───────────────────────────────────
+  async function deleteApp(id) {
+    if (!confirm('Delete this application?')) return;
+    const data = await Applications.delete(id);
+    if (data.message) {
+      Toast.success('Application deleted');
+      loadApplications();
+    } else {
+      Toast.error('Failed to delete');
+    }
+  }
+
+  // Set today's date as default
+  document.getElementById('add-date').value = new Date().toISOString().split('T')[0];
+
+  loadApplications();
+</script>
+</body>
+</html>

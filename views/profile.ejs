@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Profile' }) %></head>
+<body>
+<div class="bg-animated">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+</div>
+
+<%- include('partials/navbar', { page: 'profile' }) %>
+<div class="app-layout">
+  <%- include('partials/sidebar', { page: 'profile' }) %>
+  <main class="main-content">
+
+    <div class="page-header fade-in">
+      <div>
+        <div class="page-title">Profile & Settings</div>
+        <div class="page-subtitle">Manage your account</div>
+      </div>
+    </div>
+
+    <!-- Profile Hero -->
+    <div class="profile-hero fade-in stagger-1">
+      <div class="profile-hero-avatar" id="hero-avatar">?</div>
+      <div class="profile-hero-info">
+        <div class="profile-hero-name" id="hero-name">Loading...</div>
+        <div class="profile-hero-email" id="hero-email"></div>
+        <div class="profile-hero-joined" id="hero-joined"></div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px">
+          <button
+            type="button"
+            class="btn btn-secondary btn-xs"
+            style="padding:3px 8px;font-size:0.68rem;border-radius:999px;align-self:flex-start"
+            onclick="document.getElementById('avatar-input').click()"
+          >
+            Change photo
+          </button>
+          <span style="font-size:0.7rem;color:#ffffffcc">
+            Optional · JPG/PNG · square image looks best
+          </span>
+          <input type="file" id="avatar-input" accept="image/*" style="display:none">
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Account & Profile Editor -->
+      <div class="card fade-in stagger-2">
+        <h3 style="margin-bottom:20px">Account & Profile</h3>
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="profile-name" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="profile-email" class="form-control" disabled
+            style="opacity:0.6;cursor:not-allowed">
+          <small style="color:var(--text-muted);font-size:0.75rem">Email cannot be changed</small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bio / Summary</label>
+          <textarea id="profile-bio" class="form-control" rows="3" placeholder="Short summary about your background and what you're looking for."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Skills</label>
+          <textarea id="profile-skills" class="form-control" rows="2" placeholder="e.g. React, Node.js, TypeScript, SQL"></textarea>
+          <small style="color:var(--text-muted);font-size:0.75rem">Comma-separated list of skills.</small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Experience</label>
+          <textarea id="profile-experience" class="form-control" rows="3" placeholder="Summarize your key roles and responsibilities. Use new lines for different roles."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Projects</label>
+          <textarea id="profile-projects" class="form-control" rows="3" placeholder="List a few highlight projects, one per line."></textarea>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="sendTestEmail()">
+            Send test email
+          </button>
+        </div>
+      </div>
+
+      <!-- Visitor View / Stats -->
+      <div class="card fade-in stagger-3">
+        <h3 style="margin-bottom:16px">Public Profile Snapshot</h3>
+        <div id="public-profile">
+          <p style="color:var(--text-muted);font-size:0.9rem">
+            Fill in your bio, skills, experience, and projects on the left to build a polished profile visitors can see.
+          </p>
+        </div>
+
+        <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:16px">
+          <h4 style="margin-bottom:12px;font-size:0.95rem">Your Stats</h4>
+          <div style="display:flex;flex-direction:column;gap:16px" id="profile-stats">
+            <div style="color:var(--text-muted);text-align:center;padding:20px">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumes -->
+    <div class="card fade-in stagger-4" style="margin-top:20px">
+      <h3 style="margin-bottom:16px">Resumes</h3>
+      <p style="margin-bottom:12px;font-size:0.85rem;color:var(--text-muted)">
+        Upload different resume versions and keep them handy for your applications.
+      </p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px">
+        <input type="file" id="resume-input" accept=".pdf,.doc,.docx">
+        <input type="text" id="resume-name" class="form-control" placeholder="Version name (optional)" style="max-width:220px">
+        <button type="button" class="btn btn-primary btn-sm" onclick="uploadResume()">Upload</button>
+      </div>
+      <div id="resume-list" style="border-top:1px solid var(--border);padding-top:10px;font-size:0.85rem;color:var(--text-secondary)">
+        <div style="color:var(--text-muted);padding:10px 0">No resumes uploaded yet.</div>
+      </div>
+    </div>
+
+    <!-- Appearance -->
+    <div class="card fade-in stagger-5" style="margin-top:20px">
+      <h3 style="margin-bottom:20px">Appearance</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--bg-input);border-radius:var(--radius-md)">
+        <div>
+          <div style="font-weight:600;margin-bottom:4px">Dark Mode</div>
+          <div style="font-size:0.8rem;color:var(--text-muted)">Toggle between light and dark theme</div>
+        </div>
+        <button class="theme-toggle" id="profile-theme-toggle"></button>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="card fade-in stagger-6" style="margin-top:20px;border-color:rgba(239,68,68,0.2)">
+      <h3 style="margin-bottom:8px;color:var(--danger)">Danger Zone</h3>
+      <p style="margin-bottom:16px;font-size:0.875rem">These actions are permanent and cannot be undone.</p>
+      <button class="btn btn-danger" onclick="Auth.logout()">Sign Out of All Devices</button>
+    </div>
+
+  </main>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  Auth.guard();
+
+  let user = API.user();
+
+  function fillProfile(u) {
+    if (!u) return;
+
+    const initials = getInitials(u.name);
+
+    const heroAvatar   = document.getElementById('hero-avatar');
+    const navAvatar    = document.getElementById('nav-avatar');
+    const heroName     = document.getElementById('hero-name');
+    const heroEmail    = document.getElementById('hero-email');
+    const heroJoined   = document.getElementById('hero-joined');
+    const nameInput    = document.getElementById('profile-name');
+    const emailInput   = document.getElementById('profile-email');
+    const bioInput     = document.getElementById('profile-bio');
+    const skillsInput  = document.getElementById('profile-skills');
+    const expInput     = document.getElementById('profile-experience');
+    const projInput    = document.getElementById('profile-projects');
+
+    if (heroAvatar) heroAvatar.textContent = initials;
+    if (navAvatar)  navAvatar.textContent  = initials;
+    if (heroName)   heroName.textContent   = u.name;
+    if (heroEmail)  heroEmail.textContent  = u.email;
+    if (heroJoined) heroJoined.textContent = `Member since ${new Date(u.created_at || Date.now()).getFullYear()}`;
+
+    if (nameInput)   nameInput.value   = u.name || '';
+    if (emailInput)  emailInput.value  = u.email || '';
+    if (bioInput)    bioInput.value    = u.bio || '';
+    if (skillsInput) skillsInput.value = u.skills || '';
+    if (expInput)    expInput.value    = u.experience || '';
+    if (projInput)   projInput.value   = u.projects || '';
+
+    renderPublicProfile(u);
+
+    if (typeof Avatar !== 'undefined') {
+      Avatar.apply();
+    }
+  }
+
+  function renderPublicProfile(u) {
+    const container = document.getElementById('public-profile');
+    if (!container) return;
+
+    const skills = (u.skills || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const experiences = (u.experience || '')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const projects = (u.projects || '')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    container.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div>
+          <div style="font-weight:600;margin-bottom:4px">Bio</div>
+          <div style="font-size:0.9rem;color:var(--text-secondary)">
+            ${u.bio ? u.bio.replace(/\n/g, '<br>') : '<span style="color:var(--text-muted)">Add a short summary about yourself.</span>'}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-weight:600;margin-bottom:4px">Skills</div>
+          ${
+            skills.length
+              ? `<div style="display:flex;flex-wrap:wrap;gap:6px">
+                  ${skills.map(s => `<span class="badge badge-soft">${s}</span>`).join('')}
+                 </div>`
+              : '<span style="color:var(--text-muted);font-size:0.9rem">Add your key skills to show what you work with.</span>'
+          }
+        </div>
+
+        <div>
+          <div style="font-weight:600;margin-bottom:4px">Experience</div>
+          ${
+            experiences.length
+              ? `<ul style="padding-left:18px;font-size:0.9rem;color:var(--text-secondary);margin:0">
+                  ${experiences.map(e => `<li>${e}</li>`).join('')}
+                 </ul>`
+              : '<span style="color:var(--text-muted);font-size:0.9rem">Share your roles, companies, or notable responsibilities.</span>'
+          }
+        </div>
+
+        <div>
+          <div style="font-weight:600;margin-bottom:4px">Projects</div>
+          ${
+            projects.length
+              ? `<ul style="padding-left:18px;font-size:0.9rem;color:var(--text-secondary);margin:0">
+                  ${projects.map(p => `<li>${p}</li>`).join('')}
+                 </ul>`
+              : '<span style="color:var(--text-muted);font-size:0.9rem">Highlight a few projects you are proud of.</span>'
+          }
+        </div>
+      </div>
+    `;
+  }
+
+  // Initial fill from local session, then refresh from API if possible
+  if (user) {
+    fillProfile(user);
+  }
+
+  (async () => {
+    try {
+      const res = await API.get('/auth/me');
+      if (res && res.user) {
+        user = res.user;
+        localStorage.setItem('cp_user', JSON.stringify(user));
+        fillProfile(user);
+      }
+    } catch (e) {
+      // ignore if /auth/me fails
+    }
+  })();
+
+  async function updateProfile() {
+    const name        = document.getElementById('profile-name').value.trim();
+    const bio         = document.getElementById('profile-bio').value.trim();
+    const skills      = document.getElementById('profile-skills').value.trim();
+    const experience  = document.getElementById('profile-experience').value.trim();
+    const projects    = document.getElementById('profile-projects').value.trim();
+
+    if (!name) return Toast.error('Name cannot be empty');
+
+    try {
+      const res = await API.put('/auth/me', { name, bio, skills, experience, projects });
+      if (res.error) return Toast.error(res.error);
+      if (res.errors && res.errors.length) return Toast.error(res.errors[0].msg || 'Failed to update profile');
+
+      const updatedUser = res.user || { ...(API.user() || {}), name };
+      localStorage.setItem('cp_user', JSON.stringify(updatedUser));
+
+      const initials = getInitials(updatedUser.name);
+
+      fillProfile(updatedUser);
+
+      Toast.success('Profile updated! ✅');
+    } catch (e) {
+      Toast.error('Failed to update profile');
+    }
+  }
+
+  // Load stats
+  async function loadStats() {
+    const data = await Dashboard.load();
+    if (!data.summary) return;
+    const { summary, by_status } = data;
+    document.getElementById('profile-stats').innerHTML = `
+      ${statRow('📋', 'Total Applications', summary.total)}
+      ${statRow('🎯', 'Interview Rate', summary.interview_rate)}
+      ${statRow('🏆', 'Offer Rate', summary.offer_rate)}
+      ${statRow('⏱️', 'Avg Response Time', summary.avg_response_time)}
+      ${statRow('👻', 'Ghosted', by_status.Ghosted)}
+    `;
+  }
+
+  function statRow(icon, label, value) {
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px;font-size:0.875rem;color:var(--text-secondary)">
+          <span>${icon}</span>${label}
+        </div>
+        <strong>${value}</strong>
+      </div>
+    `;
+  }
+
+  // ─── Resumes ────────────────────────────────────────────────
+  async function loadResumes() {
+    const container = document.getElementById('resume-list');
+    if (!container) return;
+    container.innerHTML = '<div style="padding:10px 0;color:var(--text-muted)">Loading resumes...</div>';
+
+    try {
+      const res = await API.get('/resumes');
+      const resumes = res.resumes || [];
+      if (!resumes.length) {
+        container.innerHTML = '<div style="padding:10px 0;color:var(--text-muted)">No resumes uploaded yet.</div>';
+        return;
+      }
+
+      container.innerHTML = resumes.map(r => {
+        const name = r.version_name || r.file_path.split('/').pop();
+        const url  = '/' + r.file_path.replace(/^[\/]+/, '');
+        return `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <a href="${url}" target="_blank" style="color:var(--accent-primary);text-decoration:none;font-weight:500">
+                ${name}
+              </a>
+              <div style="font-size:0.75rem;color:var(--text-muted)">${new Date(r.created_at).toLocaleString()}</div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-xs" onclick="deleteResume(${r.id})">Delete</button>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      container.innerHTML = '<div style="padding:10px 0;color:var(--danger)">Failed to load resumes.</div>';
+    }
+  }
+
+  async function uploadResume() {
+    const fileInput = document.getElementById('resume-input');
+    const nameInput = document.getElementById('resume-name');
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+      return Toast.error('Please choose a resume file');
+    }
+
+    const file = fileInput.files[0];
+    const allowed = ['application/pdf', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowed.includes(file.type)) {
+      return Toast.error('Only PDF and Word documents are allowed');
+    }
+
+    const form = new FormData();
+    form.append('resume', file);
+    if (nameInput && nameInput.value.trim()) {
+      form.append('version_name', nameInput.value.trim());
+    }
+
+    try {
+      const res = await API.uploadForm('/resumes', form);
+      if (res.error) return Toast.error(res.error);
+      Toast.success('Resume uploaded!');
+      fileInput.value = '';
+      if (nameInput) nameInput.value = '';
+      loadResumes();
+    } catch (e) {
+      Toast.error('Failed to upload resume');
+    }
+  }
+
+  async function deleteResume(id) {
+    if (!confirm('Delete this resume?')) return;
+    try {
+      const res = await API.delete(`/resumes/${id}`);
+      if (res.message) {
+        Toast.success('Resume deleted');
+        loadResumes();
+      } else {
+        Toast.error(res.error || 'Failed to delete resume');
+      }
+    } catch (e) {
+      Toast.error('Failed to delete resume');
+    }
+  }
+
+  async function sendTestEmail() {
+    try {
+      const res = await API.get('/test-email');
+      if (res.error) return Toast.error(res.error);
+      Toast.success('Test email sent. Check your inbox.');
+    } catch (e) {
+      Toast.error('Failed to send test email');
+    }
+  }
+
+  // Avatar upload
+  const avatarInput = document.getElementById('avatar-input');
+  if (avatarInput) {
+    avatarInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        Toast.error('Please select an image file');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof Avatar !== 'undefined') {
+          Avatar.set(reader.result);
+        }
+      };
+      reader.onerror = () => Toast.error('Failed to read image file');
+      reader.readAsDataURL(file);
+    });
+  }
+
+  loadStats();
+  loadResumes();
+</script>
+</body>
+</html>

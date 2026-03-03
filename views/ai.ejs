@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'AI Tools' }) %></head>
+<body>
+<div class="bg-animated">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+</div>
+
+<%- include('partials/navbar', { page: 'ai' }) %>
+<div class="app-layout">
+  <%- include('partials/sidebar', { page: 'ai' }) %>
+  <main class="main-content">
+
+    <div class="page-header fade-in">
+      <div>
+        <div class="page-title">AI Tools</div>
+        <div class="page-subtitle">Powered by Gemini AI</div>
+      </div>
+    </div>
+
+    <!-- Tool Tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:24px" class="fade-in stagger-1">
+      <button class="btn btn-primary" onclick="showTool('match')">🎯 Resume Match</button>
+      <button class="btn btn-secondary" onclick="showTool('ats')">🤖 ATS Checker</button>
+      <button class="btn btn-secondary" onclick="showTool('rejection')">📧 Rejection Analyzer</button>
+    </div>
+
+    <!-- Resume Match Tool -->
+    <div id="tool-match" class="fade-in stagger-2">
+      <div class="card">
+        <h3 style="margin-bottom:6px">Resume vs Job Match Score</h3>
+        <p style="margin-bottom:24px;font-size:0.875rem">Paste your resume and job description to get an AI match score</p>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Your Resume</label>
+            <textarea id="match-resume" class="form-control" rows="10"
+              placeholder="Paste your resume text here..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Job Description</label>
+            <textarea id="match-jd" class="form-control" rows="10"
+              placeholder="Paste the job description here..."></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-lg" id="match-btn" onclick="runMatchScore()">
+          🎯 Analyze Match
+        </button>
+        <div id="match-result"></div>
+      </div>
+    </div>
+
+    <!-- ATS Checker Tool -->
+    <div id="tool-ats" style="display:none" class="fade-in">
+      <div class="card">
+        <h3 style="margin-bottom:6px">ATS Score Checker</h3>
+        <p style="margin-bottom:24px;font-size:0.875rem">Check how well your resume passes Applicant Tracking Systems</p>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Your Resume</label>
+            <textarea id="ats-resume" class="form-control" rows="10"
+              placeholder="Paste your resume text here..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Job Description</label>
+            <textarea id="ats-jd" class="form-control" rows="10"
+              placeholder="Paste the job description here..."></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-lg" id="ats-btn" onclick="runAtsCheck()">
+          🤖 Check ATS Score
+        </button>
+        <div id="ats-result"></div>
+      </div>
+    </div>
+
+    <!-- Rejection Analyzer Tool -->
+    <div id="tool-rejection" style="display:none" class="fade-in">
+      <div class="card">
+        <h3 style="margin-bottom:6px">Rejection Email Analyzer</h3>
+        <p style="margin-bottom:24px;font-size:0.875rem">Paste a rejection email to extract insights and improve</p>
+        <div class="form-group">
+          <label class="form-label">Rejection Email Content</label>
+          <textarea id="rejection-email" class="form-control" rows="10"
+            placeholder="Paste the rejection email here..."></textarea>
+        </div>
+        <button class="btn btn-primary btn-lg" id="rejection-btn" onclick="runRejectionAnalysis()">
+          📧 Analyze Email
+        </button>
+        <div id="rejection-result"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  Auth.guard();
+  Theme.init();
+  Toast.init();
+
+  function showTool(name) {
+    ['match','ats','rejection'].forEach(t => {
+      document.getElementById(`tool-${t}`).style.display = t === name ? 'block' : 'none';
+    });
+  }
+
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    btn.innerHTML = loading
+      ? '<div class="spinner"></div> Analyzing...'
+      : btn.dataset.label;
+  }
+
+  document.getElementById('match-btn').dataset.label     = '🎯 Analyze Match';
+  document.getElementById('ats-btn').dataset.label       = '🤖 Check ATS Score';
+  document.getElementById('rejection-btn').dataset.label = '📧 Analyze Email';
+
+  // ─── Resume Match ──────────────────────────────────────────
+  async function runMatchScore() {
+    const resume = document.getElementById('match-resume').value.trim();
+    const jd     = document.getElementById('match-jd').value.trim();
+    if (!resume || !jd) return Toast.error('Please fill in both fields');
+
+    setLoading('match-btn', true);
+    const data = await API.post('/ai/match-score', { resume_text: resume, job_description: jd });
+    setLoading('match-btn', false);
+
+    if (data.error) return Toast.error(data.error);
+    const r = data.result;
+
+    document.getElementById('match-result').innerHTML = `
+      <div class="ai-result">
+        <div class="ai-score-circle">${r.score}</div>
+        <p style="text-align:center;margin-bottom:20px;color:var(--text-secondary)">${r.summary}</p>
+        <div style="margin-bottom:16px">
+          <strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">Missing Keywords</strong>
+          <div style="margin-top:8px">${(r.missing_keywords||[]).map(k => `<span class="keyword-tag missing">${k}</span>`).join('')}</div>
+        </div>
+        <div>
+          <strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">Suggestions</strong>
+          <ul style="margin-top:8px;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+            ${(r.suggestions||[]).map(s => `<li style="font-size:0.875rem;color:var(--text-secondary)">${s}</li>`).join('')}
+          </ul>
+        </div>
+      </div>`;
+    Toast.success('Analysis complete! 🎯');
+  }
+
+  // ─── ATS Check ─────────────────────────────────────────────
+  async function runAtsCheck() {
+    const resume = document.getElementById('ats-resume').value.trim();
+    const jd     = document.getElementById('ats-jd').value.trim();
+    if (!resume || !jd) return Toast.error('Please fill in both fields');
+
+    setLoading('ats-btn', true);
+    const data = await API.post('/ai/ats-check', { resume_text: resume, job_description: jd });
+    setLoading('ats-btn', false);
+
+    if (data.error) return Toast.error(data.error);
+    const r = data.result;
+
+    document.getElementById('ats-result').innerHTML = `
+      <div class="ai-result">
+        <div class="ai-score-circle">${r.ats_score}</div>
+        <div style="margin-bottom:16px">
+          <strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">Matched Keywords</strong>
+          <div style="margin-top:8px">${(r.matched_keywords||[]).map(k=>`<span class="keyword-tag">${k}</span>`).join('')}</div>
+        </div>
+        <div style="margin-bottom:16px">
+          <strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">Missing Keywords</strong>
+          <div style="margin-top:8px">${(r.missing_keywords||[]).map(k=>`<span class="keyword-tag missing">${k}</span>`).join('')}</div>
+        </div>
+        <div>
+          <strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">Recommendations</strong>
+          <ul style="margin-top:8px;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+            ${(r.recommendations||[]).map(s=>`<li style="font-size:0.875rem;color:var(--text-secondary)">${s}</li>`).join('')}
+          </ul>
+        </div>
+      </div>`;
+    Toast.success('ATS analysis complete! 🤖');
+  }
+
+  // ─── Rejection Analyzer ────────────────────────────────────
+  async function runRejectionAnalysis() {
+    const email = document.getElementById('rejection-email').value.trim();
+    if (!email) return Toast.error('Please paste the rejection email');
+
+    setLoading('rejection-btn', true);
+    const data = await API.post('/ai/analyze-rejection', { email_content: email });
+    setLoading('rejection-btn', false);
+
+    if (data.error) return Toast.error(data.error);
+    const r = data.result;
+
+    const sentimentColor = { positive: '#10b981', neutral: '#f59e0b', negative: '#ef4444' };
+
+    document.getElementById('rejection-result').innerHTML = `
+      <div class="ai-result">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+          <span class="badge" style="background:rgba(239,68,68,0.1);color:#ef4444">
+            ${r.is_rejection ? '❌ Rejection Confirmed' : '✅ Not a Rejection'}
+          </span>
+          <span class="badge" style="background:rgba(99,102,241,0.1);color:var(--accent-primary)">
+            Sentiment: ${r.sentiment}
+          </span>
+        </div>
+        ${r.reason ? `<p style="margin-bottom:16px;font-size:0.875rem;color:var(--text-secondary)"><strong>Reason:</strong> ${r.reason}</p>` : ''}
+        <div style="padding:16px;background:rgba(99,102,241,0.06);border-radius:var(--radius-md);margin-bottom:16px;border-left:3px solid var(--accent-primary)">
+          <p style="font-size:0.875rem;color:var(--text-secondary);font-style:italic">💪 ${r.encouragement}</p>
+        </div>
+        <div style="margin-bottom:16px">
+          <strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">Skill Gaps</strong>
+          <div style="margin-top:8px">${(r.skill_gaps||[]).map(k=>`<span class="keyword-tag missing">${k}</span>`).join('')}</div>
+        </div>
+        <div>
+          <strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">Improvements</strong>
+          <ul style="margin-top:8px;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+            ${(r.suggested_improvements||[]).map(s=>`<li style="font-size:0.875rem;color:var(--text-secondary)">${s}</li>`).join('')}
+          </ul>
+        </div>
+      </div>`;
+    Toast.success('Rejection analyzed! 📧');
+  }
+</script>
+</body>
+</html>

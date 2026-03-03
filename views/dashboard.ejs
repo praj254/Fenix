@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Dashboard' }) %></head>
+<body>
+
+<div class="bg-animated">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+</div>
+
+<%- include('partials/navbar', { page: 'dashboard' }) %>
+
+<div class="app-layout">
+  <%- include('partials/sidebar', { page: 'dashboard' }) %>
+
+  <main class="main-content">
+
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-subtitle" id="greeting">Loading your stats...</div>
+      </div>
+      <a href="/applications" class="btn btn-primary">
+        + New Application
+      </a>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid-4" style="margin-bottom:24px">
+      <div class="stat-card fade-in stagger-1">
+        <div class="stat-icon purple">📋</div>
+        <div>
+          <div class="stat-value" id="stat-total" data-suffix="">0</div>
+          <div class="stat-label">Total Applications</div>
+        </div>
+      </div>
+      <div class="stat-card fade-in stagger-2">
+        <div class="stat-icon amber">🎯</div>
+        <div>
+          <div class="stat-value" id="stat-interview" data-suffix="%">0</div>
+          <div class="stat-label">Interview Rate</div>
+        </div>
+      </div>
+      <div class="stat-card fade-in stagger-3">
+        <div class="stat-icon green">🏆</div>
+        <div>
+          <div class="stat-value" id="stat-offer" data-suffix="%">0</div>
+          <div class="stat-label">Offer Rate</div>
+        </div>
+      </div>
+      <div class="stat-card fade-in stagger-4">
+        <div class="stat-icon blue">⏱️</div>
+        <div>
+          <div class="stat-value" id="stat-response" data-suffix="">0</div>
+          <div class="stat-label">Avg Response Days</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid-2" style="margin-bottom:24px">
+
+      <!-- Status Breakdown -->
+      <div class="card fade-in stagger-2">
+        <h3 style="margin-bottom:20px">Applications by Status</h3>
+        <div style="position:relative; height:240px">
+          <canvas id="statusChart"></canvas>
+        </div>
+        <!-- Status Pills -->
+        <div id="status-pills" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px"></div>
+      </div>
+
+      <!-- Monthly Trend -->
+      <div class="card fade-in stagger-3">
+        <h3 style="margin-bottom:20px">Monthly Trend</h3>
+        <div style="position:relative; height:240px">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="card fade-in stagger-4">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px">
+        <h3>Recent Applications</h3>
+        <a href="/applications" class="btn btn-secondary btn-sm">View All</a>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Applied</th>
+              <th>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody id="recent-table">
+            <tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  Auth.guard();
+
+  // Greeting
+  const user = API.user();
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greeting').textContent = `${greet}, ${user?.name || 'there'} 👋`;
+
+  // Chart defaults
+  Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
+  Chart.defaults.font.family = 'Inter';
+
+  let statusChart, trendChart;
+
+  async function loadDashboard() {
+    const data = await Dashboard.load();
+    if (data.error) { Toast.error('Failed to load dashboard'); return; }
+
+    const { summary, by_status, monthly_trend, recent_applications } = data;
+
+    // Animate stat numbers
+    animateNumber(document.getElementById('stat-total'),    Number(summary.total));
+    animateNumber(document.getElementById('stat-interview'), parseInt(summary.interview_rate));
+    animateNumber(document.getElementById('stat-offer'),     parseInt(summary.offer_rate));
+    animateNumber(document.getElementById('stat-response'),  parseFloat(summary.avg_response_time));
+
+    // Status pills
+    const pillsEl = document.getElementById('status-pills');
+    const statusColors = {
+      Applied: '#3b82f6', Interview: '#f59e0b',
+      Offer: '#10b981', Rejected: '#ef4444', Ghosted: '#94a3b8'
+    };
+    pillsEl.innerHTML = Object.entries(by_status).map(([s, c]) => `
+      <div style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text-secondary)">
+        <span style="width:10px;height:10px;border-radius:50%;background:${statusColors[s]};display:inline-block"></span>
+        ${s}: <strong>${c}</strong>
+      </div>
+    `).join('');
+
+    // Donut chart — status breakdown
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+    if (statusChart) statusChart.destroy();
+    statusChart = new Chart(document.getElementById('statusChart'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(by_status),
+        datasets: [{
+          data: Object.values(by_status),
+          backgroundColor: ['#3b82f6','#f59e0b','#10b981','#ef4444','#94a3b8'],
+          borderWidth: 0,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: isDark ? '#131d35' : '#fff',
+            titleColor: isDark ? '#f1f5f9' : '#0f172a',
+            bodyColor: isDark ? '#94a3b8' : '#475569',
+            borderColor: 'rgba(99,102,241,0.2)',
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 10
+          }
+        }
+      }
+    });
+
+    // Line chart — monthly trend
+    if (trendChart) trendChart.destroy();
+    trendChart = new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: monthly_trend.map(r => r.month),
+        datasets: [{
+          label: 'Applications',
+          data: monthly_trend.map(r => r.count),
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99,102,241,0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#6366f1',
+          pointRadius: 5,
+          pointHoverRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: isDark ? '#131d35' : '#fff',
+            titleColor: isDark ? '#f1f5f9' : '#0f172a',
+            bodyColor: isDark ? '#94a3b8' : '#475569',
+            borderColor: 'rgba(99,102,241,0.2)',
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 10
+          }
+        },
+        scales: {
+          x: { grid: { color: gridColor }, border: { display: false } },
+          y: { grid: { color: gridColor }, border: { display: false }, beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+      }
+    });
+
+    // Recent applications table
+    const tbody = document.getElementById('recent-table');
+    if (!recent_applications.length) {
+      tbody.innerHTML = `<tr><td colspan="5">
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <h3>No applications yet</h3>
+          <p>Start tracking your job search</p>
+        </div>
+      </td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = recent_applications.map(app => `
+      <tr>
+        <td><strong>${app.company_name}</strong></td>
+        <td style="color:var(--text-secondary)">${app.job_title}</td>
+        <td>${statusBadge(app.status)}</td>
+        <td style="color:var(--text-muted)">${formatDate(app.applied_date)}</td>
+        <td style="color:var(--text-muted)">${formatDate(app.last_updated)}</td>
+      </tr>
+    `).join('');
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>
