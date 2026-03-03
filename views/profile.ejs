@@ -1,211 +1,356 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head><%- include('partials/head', { title: 'Profile' }) %></head>
+
 <body>
-<div class="bg-animated">
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-</div>
+  <div class="bg-animated">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+  </div>
 
-<%- include('partials/navbar', { page: 'profile' }) %>
-<div class="app-layout">
-  <%- include('partials/sidebar', { page: 'profile' }) %>
-  <main class="main-content">
+  <%- include('partials/navbar', { page: 'profile' }) %>
+    <div class="app-layout">
+      <%- include('partials/sidebar', { page: 'profile' }) %>
+        <main class="main-content">
 
-    <div class="page-header fade-in">
-      <div>
-        <div class="page-title">Profile & Settings</div>
-        <div class="page-subtitle">Manage your account</div>
-      </div>
-    </div>
-
-    <!-- Profile Hero -->
-    <div class="profile-hero fade-in stagger-1">
-      <div class="profile-hero-avatar" id="hero-avatar">?</div>
-      <div class="profile-hero-info">
-        <div class="profile-hero-name" id="hero-name">Loading...</div>
-        <div class="profile-hero-email" id="hero-email"></div>
-        <div class="profile-hero-joined" id="hero-joined"></div>
-        <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px">
-          <button
-            type="button"
-            class="btn btn-secondary btn-xs"
-            style="padding:3px 8px;font-size:0.68rem;border-radius:999px;align-self:flex-start"
-            onclick="document.getElementById('avatar-input').click()"
-          >
-            Change photo
-          </button>
-          <span style="font-size:0.7rem;color:#ffffffcc">
-            Optional · JPG/PNG · square image looks best
-          </span>
-          <input type="file" id="avatar-input" accept="image/*" style="display:none">
-        </div>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <!-- Account & Profile Editor -->
-      <div class="card fade-in stagger-2">
-        <h3 style="margin-bottom:20px">Account & Profile</h3>
-        <div class="form-group">
-          <label class="form-label">Full Name</label>
-          <input type="text" id="profile-name" class="form-control">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" id="profile-email" class="form-control" disabled
-            style="opacity:0.6;cursor:not-allowed">
-          <small style="color:var(--text-muted);font-size:0.75rem">Email cannot be changed</small>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Bio / Summary</label>
-          <textarea id="profile-bio" class="form-control" rows="3" placeholder="Short summary about your background and what you're looking for."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Skills</label>
-          <textarea id="profile-skills" class="form-control" rows="2" placeholder="e.g. React, Node.js, TypeScript, SQL"></textarea>
-          <small style="color:var(--text-muted);font-size:0.75rem">Comma-separated list of skills.</small>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Experience</label>
-          <textarea id="profile-experience" class="form-control" rows="3" placeholder="Summarize your key roles and responsibilities. Use new lines for different roles."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Projects</label>
-          <textarea id="profile-projects" class="form-control" rows="3" placeholder="List a few highlight projects, one per line."></textarea>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="sendTestEmail()">
-            Send test email
-          </button>
-        </div>
-      </div>
-
-      <!-- Visitor View / Stats -->
-      <div class="card fade-in stagger-3">
-        <h3 style="margin-bottom:16px">Public Profile Snapshot</h3>
-        <div id="public-profile">
-          <p style="color:var(--text-muted);font-size:0.9rem">
-            Fill in your bio, skills, experience, and projects on the left to build a polished profile visitors can see.
-          </p>
-        </div>
-
-        <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:16px">
-          <h4 style="margin-bottom:12px;font-size:0.95rem">Your Stats</h4>
-          <div style="display:flex;flex-direction:column;gap:16px" id="profile-stats">
-            <div style="color:var(--text-muted);text-align:center;padding:20px">Loading...</div>
+          <div class="page-header fade-in">
+            <div>
+              <div class="page-title">Profile & Settings</div>
+              <div class="page-subtitle">Manage your account</div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          <!-- Profile Hero -->
+          <div class="profile-hero fade-in stagger-1">
+            <div class="profile-hero-avatar" id="hero-avatar">?</div>
+            <div class="profile-hero-info">
+              <div class="profile-hero-name" id="hero-name">Loading...</div>
+              <div class="profile-hero-email" id="hero-email"></div>
+              <div class="profile-hero-joined" id="hero-joined"></div>
+              <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px">
+                <button type="button" class="btn btn-secondary btn-xs"
+                  style="padding:3px 8px;font-size:0.68rem;border-radius:999px;align-self:flex-start"
+                  onclick="document.getElementById('avatar-input').click()">
+                  Change photo
+                </button>
+                <span style="font-size:0.7rem;color:#ffffffcc">
+                  Optional · JPG/PNG · square image looks best
+                </span>
+                <input type="file" id="avatar-input" accept="image/*" style="display:none">
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <!-- Account & Profile Editor -->
+            <div class="card fade-in stagger-2">
+              <h3 style="margin-bottom:20px">Account & Profile</h3>
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="profile-name" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="profile-email" class="form-control" disabled
+                  style="opacity:0.6;cursor:not-allowed">
+                <small style="color:var(--text-muted);font-size:0.75rem">Email cannot be changed</small>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" id="profile-phone" class="form-control" placeholder="+1 234 567 8900">
+                <small style="color:var(--text-muted);font-size:0.75rem">Used for account recovery &amp; future SMS
+                  2FA</small>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Bio / Summary</label>
+                <textarea id="profile-bio" class="form-control" rows="3"
+                  placeholder="Short summary about your background and what you're looking for."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Skills</label>
+                <textarea id="profile-skills" class="form-control" rows="2"
+                  placeholder="e.g. React, Node.js, TypeScript, SQL"></textarea>
+                <small style="color:var(--text-muted);font-size:0.75rem">Comma-separated list of skills.</small>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Experience</label>
+                <textarea id="profile-experience" class="form-control" rows="3"
+                  placeholder="Summarize your key roles and responsibilities. Use new lines for different roles."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Projects</label>
+                <textarea id="profile-projects" class="form-control" rows="3"
+                  placeholder="List a few highlight projects, one per line."></textarea>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="sendTestEmail()">
+                  Send test email
+                </button>
+              </div>
+            </div>
+
+            <!-- Visitor View / Stats -->
+            <div class="card fade-in stagger-3">
+              <h3 style="margin-bottom:16px">Public Profile Snapshot</h3>
+              <div id="public-profile">
+                <p style="color:var(--text-muted);font-size:0.9rem">
+                  Fill in your bio, skills, experience, and projects on the left to build a polished profile visitors
+                  can see.
+                </p>
+              </div>
+
+              <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:16px">
+                <h4 style="margin-bottom:12px;font-size:0.95rem">Your Stats</h4>
+                <div style="display:flex;flex-direction:column;gap:16px" id="profile-stats">
+                  <div style="color:var(--text-muted);text-align:center;padding:20px">Loading...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumes -->
+          <div class="card fade-in stagger-4" style="margin-top:20px">
+            <h3 style="margin-bottom:16px">Resumes</h3>
+            <p style="margin-bottom:12px;font-size:0.85rem;color:var(--text-muted)">
+              Upload different resume versions and keep them handy for your applications.
+            </p>
+            <!-- Hidden native file input -->
+            <input type="file" id="resume-input" accept=".pdf,.doc,.docx" style="display:none"
+              onchange="document.getElementById('resume-file-label').textContent = this.files[0] ? this.files[0].name : 'No file chosen'">
+
+            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px">
+              <!-- Custom styled file button -->
+              <button type="button" onclick="document.getElementById('resume-input').click()" style="
+            display:inline-flex;align-items:center;gap:8px;
+            padding:8px 16px;border-radius:var(--radius-md,8px);
+            background:var(--bg-input);
+            border:1.5px solid var(--border);
+            color:var(--text-secondary);
+            font-size:0.85rem;font-weight:500;cursor:pointer;
+            transition:border-color .2s,background .2s;white-space:nowrap;
+          " onmouseover="this.style.borderColor='var(--accent-primary)';this.style.background='var(--bg-card)'"
+                onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-input)'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Choose File
+              </button>
+              <!-- Selected filename display -->
+              <span id="resume-file-label"
+                style="font-size:0.82rem;color:var(--text-muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                No file chosen
+              </span>
+
+              <input type="text" id="resume-name" class="form-control" placeholder="Version name (optional)"
+                style="width:160px;flex-shrink:0">
+              <button type="button" class="btn btn-primary btn-sm" onclick="uploadResume()">Upload</button>
+            </div>
+            <div id="resume-list"
+              style="border-top:1px solid var(--border);padding-top:10px;font-size:0.85rem;color:var(--text-secondary)">
+              <div style="color:var(--text-muted);padding:10px 0">No resumes uploaded yet.</div>
+            </div>
+          </div>
+
+          <!-- ═══ SECURITY ═══ -->
+          <div class="card fade-in stagger-5" style="margin-top:20px;" id="security-section">
+            <h3 style="margin-bottom:4px;display:flex;align-items:center;gap:10px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Security
+            </h3>
+            <p style="color:var(--text-muted);font-size:0.83rem;margin-bottom:24px;">Manage your password, phone number
+              and two-factor authentication.</p>
+
+            <!-- ── Change Password ── -->
+            <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:20px;margin-bottom:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <div>
+                  <div style="font-weight:600;font-size:0.93rem;">Change Password</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Choose a strong password you
+                    don't use elsewhere.</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <input type="password" id="sec-current-pw" class="form-control" placeholder="Current password">
+                <input type="password" id="sec-new-pw" class="form-control" placeholder="New password (min 6 chars)">
+                <input type="password" id="sec-confirm-pw" class="form-control" placeholder="Confirm new password">
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="changePassword()">
+                Update Password
+              </button>
+            </div>
+
+            <!-- ── Phone & 2FA ── -->
+            <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <div>
+                  <div style="font-weight:600;font-size:0.93rem;">Two-Factor Authentication</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">An OTP is emailed to you each
+                    time you sign in.</div>
+                </div>
+                <!-- 2FA status badge -->
+                <span id="twofa-badge" style="
+            font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
+            padding:3px 10px;border-radius:100px;
+            background:rgba(16,185,129,0.12);color:#10b981;
+            border:1px solid rgba(16,185,129,0.25);
+          ">Enabled</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" id="sec-phone" class="form-control" placeholder="+1 234 567 8900">
+                <small style="color:var(--text-muted);font-size:0.75rem;">Kept on file · used for future SMS 2FA</small>
+              </div>
+
+              <!-- Toggle row -->
+              <div
+                style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--border);margin-top:8px;">
+                <div>
+                  <div style="font-size:0.88rem;font-weight:600;">Require OTP on login</div>
+                  <div style="font-size:0.76rem;color:var(--text-muted);margin-top:2px;">Disabling this lets you log in
+                    with just your password.</div>
+                </div>
+                <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+                  <input type="checkbox" id="twofa-toggle" style="opacity:0;width:0;height:0;"
+                    onchange="syncTwofaBadge()">
+                  <span id="twofa-track" style="
+              position:absolute;inset:0;border-radius:100px;
+              background:rgba(99,102,241,0.2);border:1.5px solid rgba(99,102,241,0.3);
+              transition:background .2s;
+            "></span>
+                  <span id="twofa-thumb" style="
+              position:absolute;top:3px;left:3px;
+              width:18px;height:18px;border-radius:50%;
+              background:var(--accent-primary);
+              transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+              box-shadow:0 2px 6px rgba(99,102,241,0.4);
+            "></span>
+                </label>
+              </div>
+
+              <button type="button" class="btn btn-primary btn-sm" onclick="saveSecurity()">
+                Save Security Settings
+              </button>
+            </div>
+          </div>
+
+          <!-- Appearance -->
+          <div class="card fade-in stagger-5" style="margin-top:20px">
+            <h3 style="margin-bottom:20px">Appearance</h3>
+            <div
+              style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--bg-input);border-radius:var(--radius-md)">
+              <div>
+                <div style="font-weight:600;margin-bottom:4px">Dark Mode</div>
+                <div style="font-size:0.8rem;color:var(--text-muted)">Toggle between light and dark theme</div>
+              </div>
+              <button class="theme-toggle" id="profile-theme-toggle"></button>
+            </div>
+          </div>
+
+          <!-- Danger Zone -->
+          <div class="card fade-in stagger-6" style="margin-top:20px;border-color:rgba(239,68,68,0.2)">
+            <h3 style="margin-bottom:8px;color:var(--danger)">Danger Zone</h3>
+            <p style="margin-bottom:16px;font-size:0.875rem">These actions are permanent and cannot be undone.</p>
+            <button class="btn btn-danger" onclick="Auth.logout()">Sign Out of All Devices</button>
+          </div>
+
+        </main>
     </div>
 
-    <!-- Resumes -->
-    <div class="card fade-in stagger-4" style="margin-top:20px">
-      <h3 style="margin-bottom:16px">Resumes</h3>
-      <p style="margin-bottom:12px;font-size:0.85rem;color:var(--text-muted)">
-        Upload different resume versions and keep them handy for your applications.
-      </p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px">
-        <input type="file" id="resume-input" accept=".pdf,.doc,.docx">
-        <input type="text" id="resume-name" class="form-control" placeholder="Version name (optional)" style="max-width:220px">
-        <button type="button" class="btn btn-primary btn-sm" onclick="uploadResume()">Upload</button>
-      </div>
-      <div id="resume-list" style="border-top:1px solid var(--border);padding-top:10px;font-size:0.85rem;color:var(--text-secondary)">
-        <div style="color:var(--text-muted);padding:10px 0">No resumes uploaded yet.</div>
-      </div>
-    </div>
+    <script src="/js/app.js"></script>
+    <script>
+      Auth.guard();
 
-    <!-- Appearance -->
-    <div class="card fade-in stagger-5" style="margin-top:20px">
-      <h3 style="margin-bottom:20px">Appearance</h3>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--bg-input);border-radius:var(--radius-md)">
-        <div>
-          <div style="font-weight:600;margin-bottom:4px">Dark Mode</div>
-          <div style="font-size:0.8rem;color:var(--text-muted)">Toggle between light and dark theme</div>
-        </div>
-        <button class="theme-toggle" id="profile-theme-toggle"></button>
-      </div>
-    </div>
+      let user = API.user();
 
-    <!-- Danger Zone -->
-    <div class="card fade-in stagger-6" style="margin-top:20px;border-color:rgba(239,68,68,0.2)">
-      <h3 style="margin-bottom:8px;color:var(--danger)">Danger Zone</h3>
-      <p style="margin-bottom:16px;font-size:0.875rem">These actions are permanent and cannot be undone.</p>
-      <button class="btn btn-danger" onclick="Auth.logout()">Sign Out of All Devices</button>
-    </div>
+      function fillProfile(u) {
+        if (!u) return;
 
-  </main>
-</div>
+        const initials = getInitials(u.name);
 
-<script src="/js/app.js"></script>
-<script>
-  Auth.guard();
+        const heroAvatar = document.getElementById('hero-avatar');
+        const navAvatar = document.getElementById('nav-avatar');
+        const heroName = document.getElementById('hero-name');
+        const heroEmail = document.getElementById('hero-email');
+        const heroJoined = document.getElementById('hero-joined');
+        const nameInput = document.getElementById('profile-name');
+        const emailInput = document.getElementById('profile-email');
+        const bioInput = document.getElementById('profile-bio');
+        const skillsInput = document.getElementById('profile-skills');
+        const expInput = document.getElementById('profile-experience');
+        const projInput = document.getElementById('profile-projects');
 
-  let user = API.user();
+        const phoneInput = document.getElementById('profile-phone');
 
-  function fillProfile(u) {
-    if (!u) return;
+        if (heroAvatar) heroAvatar.textContent = initials;
+        if (navAvatar) navAvatar.textContent = initials;
+        if (heroName) heroName.textContent = u.name;
+        if (heroEmail) heroEmail.textContent = u.email;
+        if (heroJoined) heroJoined.textContent = `Member since ${new Date(u.created_at || Date.now()).getFullYear()}`;
 
-    const initials = getInitials(u.name);
+        if (nameInput) nameInput.value = u.name || '';
+        if (emailInput) emailInput.value = u.email || '';
+        if (bioInput) bioInput.value = u.bio || '';
+        if (skillsInput) skillsInput.value = u.skills || '';
+        if (expInput) expInput.value = u.experience || '';
+        if (projInput) projInput.value = u.projects || '';
+        if (phoneInput) phoneInput.value = u.phone || '';
 
-    const heroAvatar   = document.getElementById('hero-avatar');
-    const navAvatar    = document.getElementById('nav-avatar');
-    const heroName     = document.getElementById('hero-name');
-    const heroEmail    = document.getElementById('hero-email');
-    const heroJoined   = document.getElementById('hero-joined');
-    const nameInput    = document.getElementById('profile-name');
-    const emailInput   = document.getElementById('profile-email');
-    const bioInput     = document.getElementById('profile-bio');
-    const skillsInput  = document.getElementById('profile-skills');
-    const expInput     = document.getElementById('profile-experience');
-    const projInput    = document.getElementById('profile-projects');
+        // Security section
+        const secPhone = document.getElementById('sec-phone');
+        const twofaToggle = document.getElementById('twofa-toggle');
+        if (secPhone) secPhone.value = u.phone || '';
+        if (twofaToggle) {
+          twofaToggle.checked = u.twofa_enabled !== 0;
+          syncTwofaBadge();
+        }
 
-    if (heroAvatar) heroAvatar.textContent = initials;
-    if (navAvatar)  navAvatar.textContent  = initials;
-    if (heroName)   heroName.textContent   = u.name;
-    if (heroEmail)  heroEmail.textContent  = u.email;
-    if (heroJoined) heroJoined.textContent = `Member since ${new Date(u.created_at || Date.now()).getFullYear()}`;
+        renderPublicProfile(u);
 
-    if (nameInput)   nameInput.value   = u.name || '';
-    if (emailInput)  emailInput.value  = u.email || '';
-    if (bioInput)    bioInput.value    = u.bio || '';
-    if (skillsInput) skillsInput.value = u.skills || '';
-    if (expInput)    expInput.value    = u.experience || '';
-    if (projInput)   projInput.value   = u.projects || '';
+        if (typeof Avatar !== 'undefined') {
+          Avatar.apply();
+        }
+      }
 
-    renderPublicProfile(u);
+      function renderPublicProfile(u) {
+        const container = document.getElementById('public-profile');
+        if (!container) return;
 
-    if (typeof Avatar !== 'undefined') {
-      Avatar.apply();
-    }
-  }
+        const skills = (u.skills || '')
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean);
 
-  function renderPublicProfile(u) {
-    const container = document.getElementById('public-profile');
-    if (!container) return;
+        const experiences = (u.experience || '')
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean);
 
-    const skills = (u.skills || '')
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
+        const projects = (u.projects || '')
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean);
 
-    const experiences = (u.experience || '')
-      .split('\n')
-      .map(s => s.trim())
-      .filter(Boolean);
-
-    const projects = (u.projects || '')
-      .split('\n')
-      .map(s => s.trim())
-      .filter(Boolean);
-
-    container.innerHTML = `
+        container.innerHTML = `
       <div style="display:flex;flex-direction:column;gap:16px">
         <div>
           <div style="font-weight:600;margin-bottom:4px">Bio</div>
@@ -216,101 +361,98 @@
 
         <div>
           <div style="font-weight:600;margin-bottom:4px">Skills</div>
-          ${
-            skills.length
-              ? `<div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${skills.length
+            ? `<div style="display:flex;flex-wrap:wrap;gap:6px">
                   ${skills.map(s => `<span class="badge badge-soft">${s}</span>`).join('')}
                  </div>`
-              : '<span style="color:var(--text-muted);font-size:0.9rem">Add your key skills to show what you work with.</span>'
+            : '<span style="color:var(--text-muted);font-size:0.9rem">Add your key skills to show what you work with.</span>'
           }
         </div>
 
         <div>
           <div style="font-weight:600;margin-bottom:4px">Experience</div>
-          ${
-            experiences.length
-              ? `<ul style="padding-left:18px;font-size:0.9rem;color:var(--text-secondary);margin:0">
+          ${experiences.length
+            ? `<ul style="padding-left:18px;font-size:0.9rem;color:var(--text-secondary);margin:0">
                   ${experiences.map(e => `<li>${e}</li>`).join('')}
                  </ul>`
-              : '<span style="color:var(--text-muted);font-size:0.9rem">Share your roles, companies, or notable responsibilities.</span>'
+            : '<span style="color:var(--text-muted);font-size:0.9rem">Share your roles, companies, or notable responsibilities.</span>'
           }
         </div>
 
         <div>
           <div style="font-weight:600;margin-bottom:4px">Projects</div>
-          ${
-            projects.length
-              ? `<ul style="padding-left:18px;font-size:0.9rem;color:var(--text-secondary);margin:0">
+          ${projects.length
+            ? `<ul style="padding-left:18px;font-size:0.9rem;color:var(--text-secondary);margin:0">
                   ${projects.map(p => `<li>${p}</li>`).join('')}
                  </ul>`
-              : '<span style="color:var(--text-muted);font-size:0.9rem">Highlight a few projects you are proud of.</span>'
+            : '<span style="color:var(--text-muted);font-size:0.9rem">Highlight a few projects you are proud of.</span>'
           }
         </div>
       </div>
     `;
-  }
+      }
 
-  // Initial fill from local session, then refresh from API if possible
-  if (user) {
-    fillProfile(user);
-  }
-
-  (async () => {
-    try {
-      const res = await API.get('/auth/me');
-      if (res && res.user) {
-        user = res.user;
-        localStorage.setItem('cp_user', JSON.stringify(user));
+      // Initial fill from local session, then refresh from API if possible
+      if (user) {
         fillProfile(user);
       }
-    } catch (e) {
-      // ignore if /auth/me fails
-    }
-  })();
 
-  async function updateProfile() {
-    const name        = document.getElementById('profile-name').value.trim();
-    const bio         = document.getElementById('profile-bio').value.trim();
-    const skills      = document.getElementById('profile-skills').value.trim();
-    const experience  = document.getElementById('profile-experience').value.trim();
-    const projects    = document.getElementById('profile-projects').value.trim();
+      (async () => {
+        try {
+          const res = await API.get('/auth/me');
+          if (res && res.user) {
+            user = res.user;
+            localStorage.setItem('cp_user', JSON.stringify(user));
+            fillProfile(user);
+          }
+        } catch (e) {
+          // ignore if /auth/me fails
+        }
+      })();
 
-    if (!name) return Toast.error('Name cannot be empty');
+      async function updateProfile() {
+        const name = document.getElementById('profile-name').value.trim();
+        const bio = document.getElementById('profile-bio').value.trim();
+        const skills = document.getElementById('profile-skills').value.trim();
+        const experience = document.getElementById('profile-experience').value.trim();
+        const projects = document.getElementById('profile-projects').value.trim();
 
-    try {
-      const res = await API.put('/auth/me', { name, bio, skills, experience, projects });
-      if (res.error) return Toast.error(res.error);
-      if (res.errors && res.errors.length) return Toast.error(res.errors[0].msg || 'Failed to update profile');
+        if (!name) return Toast.error('Name cannot be empty');
 
-      const updatedUser = res.user || { ...(API.user() || {}), name };
-      localStorage.setItem('cp_user', JSON.stringify(updatedUser));
+        try {
+          const res = await API.put('/auth/me', { name, bio, skills, experience, projects });
+          if (res.error) return Toast.error(res.error);
+          if (res.errors && res.errors.length) return Toast.error(res.errors[0].msg || 'Failed to update profile');
 
-      const initials = getInitials(updatedUser.name);
+          const updatedUser = res.user || { ...(API.user() || {}), name };
+          localStorage.setItem('cp_user', JSON.stringify(updatedUser));
 
-      fillProfile(updatedUser);
+          const initials = getInitials(updatedUser.name);
 
-      Toast.success('Profile updated! ✅');
-    } catch (e) {
-      Toast.error('Failed to update profile');
-    }
-  }
+          fillProfile(updatedUser);
 
-  // Load stats
-  async function loadStats() {
-    const data = await Dashboard.load();
-    if (!data.summary) return;
-    const { summary, by_status } = data;
-    document.getElementById('profile-stats').innerHTML = `
+          Toast.success('Profile updated! ✅');
+        } catch (e) {
+          Toast.error('Failed to update profile');
+        }
+      }
+
+      // Load stats
+      async function loadStats() {
+        const data = await Dashboard.load();
+        if (!data.summary) return;
+        const { summary, by_status } = data;
+        document.getElementById('profile-stats').innerHTML = `
       ${statRow('📋', 'Total Applications', summary.total)}
       ${statRow('🎯', 'Interview Rate', summary.interview_rate)}
       ${statRow('🏆', 'Offer Rate', summary.offer_rate)}
       ${statRow('⏱️', 'Avg Response Time', summary.avg_response_time)}
       ${statRow('👻', 'Ghosted', by_status.Ghosted)}
     `;
-  }
+      }
 
-  function statRow(icon, label, value) {
-    return `
+      function statRow(icon, label, value) {
+        return `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;gap:10px;font-size:0.875rem;color:var(--text-secondary)">
           <span>${icon}</span>${label}
@@ -318,123 +460,184 @@
         <strong>${value}</strong>
       </div>
     `;
-  }
-
-  // ─── Resumes ────────────────────────────────────────────────
-  async function loadResumes() {
-    const container = document.getElementById('resume-list');
-    if (!container) return;
-    container.innerHTML = '<div style="padding:10px 0;color:var(--text-muted)">Loading resumes...</div>';
-
-    try {
-      const res = await API.get('/resumes');
-      const resumes = res.resumes || [];
-      if (!resumes.length) {
-        container.innerHTML = '<div style="padding:10px 0;color:var(--text-muted)">No resumes uploaded yet.</div>';
-        return;
       }
 
-      container.innerHTML = resumes.map(r => {
-        const name = r.version_name || r.file_path.split('/').pop();
-        const url  = '/' + r.file_path.replace(/^[\/]+/, '');
-        return `
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-            <div>
-              <a href="${url}" target="_blank" style="color:var(--accent-primary);text-decoration:none;font-weight:500">
-                ${name}
-              </a>
-              <div style="font-size:0.75rem;color:var(--text-muted)">${new Date(r.created_at).toLocaleString()}</div>
+      // ─── Resumes ────────────────────────────────────────────────
+      async function loadResumes() {
+        const container = document.getElementById('resume-list');
+        if (!container) return;
+        container.innerHTML = '<div style="padding:10px 0;color:var(--text-muted)">Loading resumes...</div>';
+
+        try {
+          const res = await API.get('/resumes');
+          const resumes = res.resumes || [];
+          if (!resumes.length) {
+            container.innerHTML = '<div style="padding:10px 0;color:var(--text-muted)">No resumes uploaded yet.</div>';
+            return;
+          }
+
+          container.innerHTML = resumes.map(r => {
+            const name = r.version_name || r.file_path.split('/').pop();
+            const url = '/' + r.file_path.replace(/^[\/]+/, '');
+            return `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:12px">
+            <div style="min-width:0">
+              <div style="display:flex;align-items:center;gap:8px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <a href="${url}" target="_blank" style="color:var(--accent-primary);text-decoration:none;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${name}</a>
+              </div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;padding-left:22px">${new Date(r.created_at).toLocaleString()}</div>
             </div>
-            <button type="button" class="btn btn-secondary btn-xs" onclick="deleteResume(${r.id})">Delete</button>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+              <a href="${url}" download title="Download"
+                style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-input);color:var(--text-secondary);text-decoration:none;transition:all .2s"
+                onmouseover="this.style.borderColor='var(--accent-primary)';this.style.color='var(--accent-primary)'"
+                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </a>
+              <button type="button" class="btn btn-secondary btn-xs" onclick="deleteResume(${r.id})">Delete</button>
+            </div>
           </div>
         `;
-      }).join('');
-    } catch (e) {
-      container.innerHTML = '<div style="padding:10px 0;color:var(--danger)">Failed to load resumes.</div>';
-    }
-  }
-
-  async function uploadResume() {
-    const fileInput = document.getElementById('resume-input');
-    const nameInput = document.getElementById('resume-name');
-    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-      return Toast.error('Please choose a resume file');
-    }
-
-    const file = fileInput.files[0];
-    const allowed = ['application/pdf', 'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!allowed.includes(file.type)) {
-      return Toast.error('Only PDF and Word documents are allowed');
-    }
-
-    const form = new FormData();
-    form.append('resume', file);
-    if (nameInput && nameInput.value.trim()) {
-      form.append('version_name', nameInput.value.trim());
-    }
-
-    try {
-      const res = await API.uploadForm('/resumes', form);
-      if (res.error) return Toast.error(res.error);
-      Toast.success('Resume uploaded!');
-      fileInput.value = '';
-      if (nameInput) nameInput.value = '';
-      loadResumes();
-    } catch (e) {
-      Toast.error('Failed to upload resume');
-    }
-  }
-
-  async function deleteResume(id) {
-    if (!confirm('Delete this resume?')) return;
-    try {
-      const res = await API.delete(`/resumes/${id}`);
-      if (res.message) {
-        Toast.success('Resume deleted');
-        loadResumes();
-      } else {
-        Toast.error(res.error || 'Failed to delete resume');
-      }
-    } catch (e) {
-      Toast.error('Failed to delete resume');
-    }
-  }
-
-  async function sendTestEmail() {
-    try {
-      const res = await API.get('/test-email');
-      if (res.error) return Toast.error(res.error);
-      Toast.success('Test email sent. Check your inbox.');
-    } catch (e) {
-      Toast.error('Failed to send test email');
-    }
-  }
-
-  // Avatar upload
-  const avatarInput = document.getElementById('avatar-input');
-  if (avatarInput) {
-    avatarInput.addEventListener('change', (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        Toast.error('Please select an image file');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof Avatar !== 'undefined') {
-          Avatar.set(reader.result);
+          }).join('');
+        } catch (e) {
+          container.innerHTML = '<div style="padding:10px 0;color:var(--danger)">Failed to load resumes.</div>';
         }
-      };
-      reader.onerror = () => Toast.error('Failed to read image file');
-      reader.readAsDataURL(file);
-    });
-  }
+      }
 
-  loadStats();
-  loadResumes();
-</script>
+      async function uploadResume() {
+        const fileInput = document.getElementById('resume-input');
+        const nameInput = document.getElementById('resume-name');
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+          return Toast.error('Please choose a resume file');
+        }
+
+        const file = fileInput.files[0];
+        const allowed = ['application/pdf', 'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!allowed.includes(file.type)) {
+          return Toast.error('Only PDF and Word documents are allowed');
+        }
+
+        const form = new FormData();
+        form.append('resume', file);
+        if (nameInput && nameInput.value.trim()) {
+          form.append('version_name', nameInput.value.trim());
+        }
+
+        try {
+          const res = await API.uploadForm('/resumes', form);
+          if (res.error) return Toast.error(res.error);
+          Toast.success('Resume uploaded!');
+          fileInput.value = '';
+          if (nameInput) nameInput.value = '';
+          loadResumes();
+        } catch (e) {
+          Toast.error('Failed to upload resume');
+        }
+      }
+
+      async function deleteResume(id) {
+        if (!confirm('Delete this resume?')) return;
+        try {
+          const res = await API.delete(`/resumes/${id}`);
+          if (res.message) {
+            Toast.success('Resume deleted');
+            loadResumes();
+          } else {
+            Toast.error(res.error || 'Failed to delete resume');
+          }
+        } catch (e) {
+          Toast.error('Failed to delete resume');
+        }
+      }
+
+      async function sendTestEmail() {
+        try {
+          const res = await API.get('/test-email');
+          if (res.error) return Toast.error(res.error);
+          Toast.success('Test email sent. Check your inbox.');
+        } catch (e) {
+          Toast.error('Failed to send test email');
+        }
+      }
+
+      // Avatar upload
+      const avatarInput = document.getElementById('avatar-input');
+      if (avatarInput) {
+        avatarInput.addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          if (!file.type.startsWith('image/')) {
+            Toast.error('Please select an image file');
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (typeof Avatar !== 'undefined') {
+              Avatar.set(reader.result);
+            }
+          };
+          reader.onerror = () => Toast.error('Failed to read image file');
+          reader.readAsDataURL(file);
+        });
+      }
+
+      loadStats();
+      loadResumes();
+
+      // ─── Security helpers ──────────────────────────────────────
+      function syncTwofaBadge() {
+        const on = document.getElementById('twofa-toggle')?.checked;
+        const badge = document.getElementById('twofa-badge');
+        const thumb = document.getElementById('twofa-thumb');
+        if (badge) {
+          badge.textContent = on ? 'Enabled' : 'Disabled';
+          badge.style.background = on ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.1)';
+          badge.style.color = on ? '#10b981' : '#ef4444';
+          badge.style.borderColor = on ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)';
+        }
+        if (thumb) thumb.style.transform = on ? 'translateX(20px)' : 'translateX(0)';
+      }
+
+      async function changePassword() {
+        const cur = document.getElementById('sec-current-pw').value;
+        const nw = document.getElementById('sec-new-pw').value;
+        const cnf = document.getElementById('sec-confirm-pw').value;
+        if (!cur || !nw || !cnf) return Toast.error('Please fill in all password fields.');
+        if (nw !== cnf) return Toast.error('New passwords do not match.');
+        if (nw.length < 6) return Toast.error('New password must be at least 6 characters.');
+        try {
+          const res = await API.post('/auth/change-password', {
+            current_password: cur, new_password: nw
+          });
+          if (res.error) return Toast.error(res.error);
+          Toast.success('Password updated! 🔒');
+          ['sec-current-pw', 'sec-new-pw', 'sec-confirm-pw'].forEach(id => {
+            document.getElementById(id).value = '';
+          });
+        } catch (e) { Toast.error('Failed to change password.'); }
+      }
+
+      async function saveSecurity() {
+        const phone = document.getElementById('sec-phone')?.value.trim() || null;
+        const enabled = document.getElementById('twofa-toggle')?.checked ? 1 : 0;
+        try {
+          const res = await API.put('/auth/security', { phone, twofa_enabled: enabled });
+          if (res.error) return Toast.error(res.error);
+          const pPhone = document.getElementById('profile-phone');
+          if (pPhone) pPhone.value = phone || '';
+          const stored = API.user();
+          if (stored) {
+            stored.phone = phone;
+            stored.twofa_enabled = enabled;
+            localStorage.setItem('cp_user', JSON.stringify(stored));
+          }
+          Toast.success('Security settings saved! 🛡️');
+        } catch (e) { Toast.error('Failed to save security settings.'); }
+      }
+    </script>
 </body>
+
 </html>

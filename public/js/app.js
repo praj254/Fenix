@@ -6,7 +6,7 @@ const API = {
   base: '/api',
 
   token() { return localStorage.getItem('cp_token'); },
-  user()  { return JSON.parse(localStorage.getItem('cp_user') || 'null'); },
+  user() { return JSON.parse(localStorage.getItem('cp_user') || 'null'); },
 
   headers() {
     return {
@@ -76,15 +76,15 @@ const Theme = {
     const curr = document.documentElement.getAttribute('data-theme');
     const next = curr === 'dark' ? 'light' : 'dark';
 
-    const btn  = document.getElementById('theme-toggle');
+    const btn = document.getElementById('theme-toggle');
     const rect = btn?.getBoundingClientRect();
-    const x    = rect ? rect.left + rect.width  / 2 : window.innerWidth  / 2;
-    const y    = rect ? rect.top  + rect.height / 2 : window.innerHeight / 2;
+    const x = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+    const y = rect ? rect.top + rect.height / 2 : window.innerHeight / 2;
 
     // Ripple
     const ripple = document.createElement('div');
     ripple.className = `theme-ripple ${next}`;
-    ripple.style.cssText = `width:40px;height:40px;left:${x-20}px;top:${y-20}px`;
+    ripple.style.cssText = `width:40px;height:40px;left:${x - 20}px;top:${y - 20}px`;
     document.body.appendChild(ripple);
 
     // Flash
@@ -126,6 +126,20 @@ const Loader = {
 const Toast = {
   container: null,
 
+  _ICONS: {
+    success: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    error: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+    info: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+    warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  },
+
+  _TITLES: {
+    success: 'Success',
+    error: 'Error',
+    info: 'Info',
+    warning: 'Warning',
+  },
+
   init() {
     this.container = document.getElementById('toast-container');
     if (!this.container) {
@@ -136,29 +150,53 @@ const Toast = {
     }
   },
 
-  show(message, type = 'info', duration = 3500) {
+  show(message, type = 'info', duration = 4000) {
     if (!this.container) this.init();
-    const icons = { success: '✅', error: '❌', info: '💡', warning: '⚠️' };
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
+
     toast.innerHTML = `
-      <div class="toast-inner">
-        <span class="toast-icon">${icons[type]}</span>
-        <span class="toast-msg">${message}</span>
-        <button class="toast-close">✕</button>
-      </div>`;
-    toast.querySelector('.toast-close').addEventListener('click', () => toast.remove());
+      <div class="toast-accent"></div>
+      <div class="toast-icon-wrap">
+        ${this._ICONS[type] || this._ICONS.info}
+      </div>
+      <div class="toast-body">
+        <div class="toast-title">${this._TITLES[type] || type}</div>
+        <div class="toast-msg">${message}</div>
+      </div>
+      <button class="toast-close" aria-label="Dismiss">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <div class="toast-progress"><div class="toast-progress-bar" style="animation-duration:${duration}ms"></div></div>
+    `;
+
+    const closeBtn = toast.querySelector('.toast-close');
+    const dismiss = () => {
+      toast.classList.add('toast-out');
+      setTimeout(() => toast.remove(), 380);
+    };
+    closeBtn.addEventListener('click', dismiss);
+
     this.container.appendChild(toast);
-    setTimeout(() => {
-      toast.classList.add('removing');
-      setTimeout(() => toast.remove(), 300);
-    }, duration);
+
+    // Pause progress on hover
+    toast.addEventListener('mouseenter', () => {
+      toast.querySelector('.toast-progress-bar').style.animationPlayState = 'paused';
+    });
+    toast.addEventListener('mouseleave', () => {
+      toast.querySelector('.toast-progress-bar').style.animationPlayState = 'running';
+    });
+
+    setTimeout(dismiss, duration);
   },
 
-  success(msg) { this.show(msg, 'success'); },
-  error(msg)   { this.show(msg, 'error');   },
-  info(msg)    { this.show(msg, 'info');     },
-  warning(msg) { this.show(msg, 'warning'); }
+  success(msg, dur) { this.show(msg, 'success', dur); },
+  error(msg, dur) { this.show(msg, 'error', dur); },
+  info(msg, dur) { this.show(msg, 'info', dur); },
+  warning(msg, dur) { this.show(msg, 'warning', dur); },
 };
 
 /* ─── Auth ──────────────────────────────────────────────────── */
@@ -196,10 +234,10 @@ const Applications = {
     const q = new URLSearchParams(filters).toString();
     return API.get(`/applications${q ? '?' + q : ''}`);
   },
-  async create(data)     { return API.post('/applications', data); },
+  async create(data) { return API.post('/applications', data); },
   async update(id, data) { return API.put(`/applications/${id}`, data); },
-  async delete(id)       { return API.delete(`/applications/${id}`); },
-  async getStats()       { return API.get('/applications/stats'); }
+  async delete(id) { return API.delete(`/applications/${id}`); },
+  async getStats() { return API.get('/applications/stats'); }
 };
 
 /* ─── Dashboard ─────────────────────────────────────────────── */
@@ -210,11 +248,11 @@ const Dashboard = {
 /* ─── Animate Numbers ───────────────────────────────────────── */
 function animateNumber(el, target, duration = 1200) {
   if (!el) return;
-  const startTime  = performance.now();
-  const isPercent  = el.dataset.suffix === '%';
+  const startTime = performance.now();
+  const isPercent = el.dataset.suffix === '%';
   function update(now) {
     const progress = Math.min((now - startTime) / duration, 1);
-    const ease     = 1 - Math.pow(1 - progress, 3);
+    const ease = 1 - Math.pow(1 - progress, 3);
     el.textContent = Math.round(target * ease) + (isPercent ? '%' : '');
     if (progress < 1) requestAnimationFrame(update);
   }
@@ -226,15 +264,15 @@ function initScrollAnimations() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
-        e.target.style.opacity   = '1';
+        e.target.style.opacity = '1';
         e.target.style.transform = 'translateY(0)';
       }
     });
   }, { threshold: 0.1 });
 
   document.querySelectorAll('.fade-in').forEach(el => {
-    el.style.opacity    = '0';
-    el.style.transform  = 'translateY(20px)';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
     el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
     observer.observe(el);
   });
@@ -242,7 +280,7 @@ function initScrollAnimations() {
 
 /* ─── Modal Manager ─────────────────────────────────────────── */
 const Modal = {
-  open(id)  { document.getElementById(id)?.classList.add('open');    },
+  open(id) { document.getElementById(id)?.classList.add('open'); },
   close(id) { document.getElementById(id)?.classList.remove('open'); },
   closeAll() {
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
@@ -252,11 +290,11 @@ const Modal = {
 /* ─── Helpers ───────────────────────────────────────────────── */
 function statusBadge(status) {
   const map = {
-    Applied:   'badge-applied',
+    Applied: 'badge-applied',
     Interview: 'badge-interview',
-    Offer:     'badge-offer',
-    Rejected:  'badge-rejected',
-    Ghosted:   'badge-ghosted'
+    Offer: 'badge-offer',
+    Rejected: 'badge-rejected',
+    Ghosted: 'badge-ghosted'
   };
   return `<span class="badge ${map[status] || ''}">${status}</span>`;
 }
@@ -281,13 +319,13 @@ const Avatar = {
   },
   get() { return localStorage.getItem('cp_avatar'); },
   apply() {
-    const url      = this.get();
-    const user     = API.user();
+    const url = this.get();
+    const user = API.user();
     const initials = user ? getInitials(user.name) : '?';
     document.querySelectorAll('.avatar, #nav-avatar, #dropdown-avatar, #hero-avatar, #profile-avatar-img').forEach(el => {
       if (url) {
         el.style.backgroundImage = `url(${url})`;
-        el.style.backgroundSize  = 'cover';
+        el.style.backgroundSize = 'cover';
         el.style.backgroundPosition = 'center';
         el.textContent = '';
       } else {
@@ -301,11 +339,11 @@ const Avatar = {
 /* ─── Notifications ─────────────────────────────────────────── */
 async function loadNotificationCount() {
   try {
-    const data   = await API.get('/notifications');
+    const data = await API.get('/notifications');
     const unread = (data.notifications || []).filter(n => !n.is_read).length;
-    const badge  = document.getElementById('notif-badge');
+    const badge = document.getElementById('notif-badge');
     if (badge) {
-      badge.textContent   = unread;
+      badge.textContent = unread;
       badge.style.display = unread > 0 ? 'flex' : 'none';
     }
   } catch (e) { console.error('Notification count failed', e); }
@@ -318,7 +356,7 @@ async function loadNotifications() {
   list.innerHTML = '<div class="notif-empty"><div class="loader-spinner" style="margin:0 auto"></div></div>';
 
   try {
-    const data          = await API.get('/notifications');
+    const data = await API.get('/notifications');
     const notifications = data.notifications || [];
 
     if (!notifications.length) {
@@ -355,7 +393,7 @@ async function loadNotifications() {
 
 async function markAllRead() {
   try {
-    const data   = await API.get('/notifications');
+    const data = await API.get('/notifications');
     const unread = (data.notifications || []).filter(n => !n.is_read);
     if (!unread.length) { Toast.info('No unread notifications'); return; }
     await Promise.all(unread.map(n => API.put(`/notifications/${n.id}/read`, {})));
@@ -380,19 +418,19 @@ function initNavbar() {
   });
   Avatar.apply();
 
-  const nameEl  = document.getElementById('dropdown-name');
+  const nameEl = document.getElementById('dropdown-name');
   const emailEl = document.getElementById('dropdown-email');
-  if (nameEl)  nameEl.textContent  = user.name;
+  if (nameEl) nameEl.textContent = user.name;
   if (emailEl) emailEl.textContent = user.email;
 
   // Elements
-  const profileBtn      = document.getElementById('profile-btn');
+  const profileBtn = document.getElementById('profile-btn');
   const profileDropdown = document.getElementById('profile-dropdown');
-  const notifBtn        = document.getElementById('notif-btn');
-  const notifDropdown   = document.getElementById('notif-dropdown');
-  const mobileBtn       = document.getElementById('mobile-menu-btn');
-  const sidebar         = document.getElementById('sidebar');
-  const sidebarOverlay  = document.getElementById('sidebar-overlay');
+  const notifBtn = document.getElementById('notif-btn');
+  const notifDropdown = document.getElementById('notif-dropdown');
+  const mobileBtn = document.getElementById('mobile-menu-btn');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
 
   // Profile dropdown
   profileBtn?.addEventListener('click', e => {

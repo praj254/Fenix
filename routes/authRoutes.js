@@ -1,7 +1,11 @@
 const express = require('express');
-const router  = express.Router();
+const router = express.Router();
 const { body } = require('express-validator');
-const { register, login, verify2FA, getMe, updateMe } = require('../controllers/authController');
+const {
+  register, login, verify2FA,
+  getMe, updateMe,
+  changePw, updateSecurity
+} = require('../controllers/authController');
 const authMiddleware = require('../middleware/auth');
 
 const registerRules = [
@@ -20,9 +24,11 @@ const profileRules = [
 ];
 
 router.post('/register', registerRules, register);
-router.post('/login',    loginRules,    login);
+router.post('/login', loginRules, login);
 router.post('/verify-2fa', verify2FA);
 router.get('/me', authMiddleware, getMe);
 router.put('/me', authMiddleware, profileRules, updateMe);
+router.post('/change-password', authMiddleware, changePw);
+router.put('/security', authMiddleware, updateSecurity);
 
 module.exports = router;

@@ -1,5 +1,17 @@
 const { pool } = require('../config/db');
 
+/* ─── Auto-migrate: add new columns if they don't exist yet ─── */
+async function autoMigrate() {
+  const migrations = [
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS phone       VARCHAR(20)  NULL`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS twofa_enabled TINYINT(1) NOT NULL DEFAULT 1`,
+  ];
+  for (const sql of migrations) {
+    try { await pool.execute(sql); } catch (e) { /* already exists or unsupported – ignore */ }
+  }
+}
+autoMigrate().catch(() => { });
+
 const User = {
 
   async create({ name, email, password_hash }) {
@@ -21,12 +33,15 @@ const User = {
   async findById(id) {
     try {
       const [rows] = await pool.execute(
-        `SELECT id, name, email, role, created_at, bio, skills, experience, projects FROM users WHERE id = ? LIMIT 1`,
+        `SELECT id, name, email, role, created_at,
+                bio, skills, experience, projects,
+                phone, twofa_enabled
+         FROM users WHERE id = ? LIMIT 1`,
         [id]
       );
       return rows[0] || null;
     } catch (err) {
-      // Fallback for older DBs without profile columns
+      // Graceful fallback for columns not yet migrated
       if (err.code === 'ER_BAD_FIELD_ERROR') {
         const [rows] = await pool.execute(
           `SELECT id, name, email, role, created_at FROM users WHERE id = ? LIMIT 1`,
@@ -38,23 +53,33 @@ const User = {
     }
   },
 
-  async updateProfile(id, { name, bio = null, skills = null, experience = null, projects = null }) {
+  async updateProfile(id, { name, bio = null, skills = null, experience = null, projects = null, phone = null }) {
     try {
       await pool.execute(
-        `UPDATE users SET name = ?, bio = ?, skills = ?, experience = ?, projects = ? WHERE id = ?`,
-        [name, bio, skills, experience, projects, id]
+        `UPDATE users SET name = ?, bio = ?, skills = ?, experience = ?, projects = ?, phone = ? WHERE id = ?`,
+        [name, bio, skills, experience, projects, phone || null, id]
       );
     } catch (err) {
-      // Fallback: if extended columns don't exist yet, just update name
       if (err.code === 'ER_BAD_FIELD_ERROR') {
-        await pool.execute(
-          `UPDATE users SET name = ? WHERE id = ?`,
-          [name, id]
-        );
+        await pool.execute(`UPDATE users SET name = ? WHERE id = ?`, [name, id]);
         return;
       }
       throw err;
     }
+  },
+
+  async updateSecurity(id, { phone = null, twofa_enabled = 1 }) {
+    await pool.execute(
+      `UPDATE users SET phone = ?, twofa_enabled = ? WHERE id = ?`,
+      [phone || null, twofa_enabled ? 1 : 0, id]
+    );
+  },
+
+  async changePassword(id, newHash) {
+    await pool.execute(
+      `UPDATE users SET password_hash = ? WHERE id = ?`,
+      [newHash, id]
+    );
   },
 
   async save2FACode(userId, code, expiresAt) {
@@ -66,8 +91,8 @@ const User = {
 
   async verify2FACode(userId, code) {
     const [rows] = await pool.execute(
-      `SELECT * FROM users 
-       WHERE id = ? AND twofa_code = ? AND twofa_expires > NOW() 
+      `SELECT * FROM users
+       WHERE id = ? AND twofa_code = ? AND twofa_expires > NOW()
        LIMIT 1`,
       [userId, code]
     );
