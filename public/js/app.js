@@ -328,8 +328,12 @@ const Avatar = {
         el.style.backgroundSize = 'cover';
         el.style.backgroundPosition = 'center';
         el.textContent = '';
+      } else if (user) {
+        el.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${user.name}&background=random&color=fff&size=128')`;
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        el.textContent = '';
       } else {
-        el.style.backgroundImage = '';
         el.textContent = initials;
       }
     });
@@ -411,10 +415,14 @@ function initNavbar() {
   const user = API.user();
   if (!user) return;
 
-  // Set initials on all avatar elements
-  const initials = getInitials(user.name);
+  // Set initials on all avatar elements via background image
   document.querySelectorAll('#nav-avatar, #dropdown-avatar').forEach(el => {
-    if (el) el.textContent = initials;
+    if (el) {
+      el.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${user.name}&background=random&color=fff&size=128')`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+      el.textContent = '';
+    }
   });
   Avatar.apply();
 
