@@ -108,3 +108,14 @@ cron.schedule('0 3 * * *', async () => {
 });
 
 console.log('Cron jobs registered (follow-up @ 2:00 AM, ghosted @ 2:30 AM)');
+
+// ─── Gmail Email Sync — runs every 5 minutes ─────────────────
+const emailSyncJob = require('../jobs/emailSyncJob');
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    await emailSyncJob.run();
+  } catch (err) {
+    console.error('[CRON] Gmail sync job failed:', err.message);
+  }
+});
+console.log('Gmail email sync job registered (every 5 minutes)');

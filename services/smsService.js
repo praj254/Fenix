@@ -15,16 +15,13 @@ class SmsService {
     async sendOTP(to, code) {
         if (!this.isConfigured) {
             console.warn(`[SMS MOCK] To: ${to} | Code: ${code} - Twilio credentials missing in .env`);
-            return false; // Return false so controller knows it simulated it
+            return false;
         }
 
-        // Twilio requires E.164 formatting (+[CountryCode][Number])
-        // If the number doesn't start with '+', prepend the default country code (e.g. +91 for India)
         let formattedTo = to.trim();
         if (!formattedTo.startsWith('+')) {
-            formattedTo = '+91' + formattedTo.replace(/\D/g, ''); // Default +91, remove non-digits
+            formattedTo = '+91' + formattedTo.replace(/\D/g, '');
         } else {
-            // Just clean up whitespace or weird chars but keep the plus
             formattedTo = '+' + formattedTo.replace(/\D/g, '');
         }
 

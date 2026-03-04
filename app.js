@@ -13,6 +13,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const emailTestRoutes = require("./routes/emailTestRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
+const gmailRoutes = require("./routes/gmailRoutes");
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/test-email", emailTestRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/resumes", resumeRoutes);
+app.use("/api/gmail", gmailRoutes);
 
 // ─── View Routes (Frontend Pages) ───────────────────────
 app.get("/login", (req, res) => res.render("auth/login"));

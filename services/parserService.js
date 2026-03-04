@@ -28,7 +28,9 @@ const STATUS_MAP = {
             /availab[ility|le] for/i,
             /zoom/i,
             /google meet/i,
-            /hiring manager/i
+            /hiring manager/i,
+            /moving forward/i,
+            /next steps/i
         ]
     },
     OFFER: {

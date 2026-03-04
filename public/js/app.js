@@ -15,9 +15,20 @@ const API = {
     };
   },
 
+  async _handleResponse(r) {
+    if (r.status === 401 || r.status === 403) {
+      if (!window.location.pathname.includes('/login.html')) {
+        this.clearSession();
+        window.location.href = '/login.html';
+        return;
+      }
+    }
+    return r.json();
+  },
+
   async get(path) {
     const r = await fetch(this.base + path, { headers: this.headers() });
-    return r.json();
+    return this._handleResponse(r);
   },
 
   async post(path, body) {
@@ -25,7 +36,7 @@ const API = {
       method: 'POST', headers: this.headers(),
       body: JSON.stringify(body)
     });
-    return r.json();
+    return this._handleResponse(r);
   },
 
   async put(path, body) {
@@ -33,14 +44,14 @@ const API = {
       method: 'PUT', headers: this.headers(),
       body: JSON.stringify(body)
     });
-    return r.json();
+    return this._handleResponse(r);
   },
 
   async delete(path) {
     const r = await fetch(this.base + path, {
       method: 'DELETE', headers: this.headers()
     });
-    return r.json();
+    return this._handleResponse(r);
   },
 
   async uploadForm(path, formData) {
@@ -49,7 +60,7 @@ const API = {
       headers: { Authorization: `Bearer ${this.token()}` },
       body: formData
     });
-    return r.json();
+    return this._handleResponse(r);
   },
 
   setSession(token, user) {
@@ -292,9 +303,11 @@ function statusBadge(status) {
   const map = {
     Applied: 'badge-applied',
     Interview: 'badge-interview',
+    Assessment: 'badge-interview',
     Offer: 'badge-offer',
     Rejected: 'badge-rejected',
-    Ghosted: 'badge-ghosted'
+    Ghosted: 'badge-ghosted',
+    'Under Review': 'badge-applied'
   };
   return `<span class="badge ${map[status] || ''}">${status}</span>`;
 }
